@@ -3,6 +3,7 @@ package com.github.yuizho.dbbadger.processor
 import com.github.yuizho.dbbadger.annotation.DataSet
 import com.github.yuizho.dbbadger.annotation.Row
 import com.github.yuizho.dbbadger.annotation.Table
+import com.github.yuizho.dbbadger.exception.DbBadgerDataSetException
 import com.github.yuizho.dbbadger.operation.QueryOperator
 import com.github.yuizho.dbbadger.operation.QuerySource
 
@@ -45,7 +46,9 @@ private fun Row.createValuesSyntax(): Pair<String, List<String>> {
 private fun Row.createWhereSyntax(): Pair<String, List<String>> {
     val ids = vals.filter { it.isId }
     if (ids.isEmpty()) {
-        throw IllegalArgumentException("""Please set at least one Id Col [e.g. @Col(name = "id", value = "1", isId = true)]""")
+        throw DbBadgerDataSetException(
+                """Please set at least one Id Col [e.g. @Col(name = "id", value = "1", isId = true)]"""
+        )
     }
     val conditions = ids.map { "${it.name} = ?" }
     return "${conditions.joinToString(" AND ")}" to ids.map { it.value }
