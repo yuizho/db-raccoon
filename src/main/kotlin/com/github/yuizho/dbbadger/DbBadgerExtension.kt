@@ -25,20 +25,23 @@ class DbBadgerExtension @JvmOverloads constructor(
         val dataSet = testMethod.getAnnotationFromMethodOrClass(DataSet::class.java) ?: return
 
         logger.info("start test data preparation before test execution")
-        val conn = dataSource.connection
-        if (cleanupPhase.shouldCleanupBeforeTestExecution) {
-            dataSet.createDeleteQueryOperator().executeQueries(conn)
+        dataSource.connection.use { conn ->
+            if (cleanupPhase.shouldCleanupBeforeTestExecution) {
+                dataSet.createDeleteQueryOperator().executeQueries(conn)
+            }
+            dataSet.createInsertQueryOperator().executeQueries(conn)
         }
-        dataSet.createInsertQueryOperator().executeQueries(conn)
     }
 
     override fun afterTestExecution(context: ExtensionContext) {
         // When @DataSet is neither applied to Method nor Class, do nothing
         val testMethod = context.requiredTestMethod
         val dataSet = testMethod.getAnnotationFromMethodOrClass(DataSet::class.java) ?: return
-
-        val conn = dataSource.connection
-        if (cleanupPhase.shouldCleanupAfterTestExecution) {
+        if (!cleanupPhase.shouldCleanupAfterTestExecution) {
+            return
+        }
+        
+        dataSource.connection.use { conn ->
             logger.info("start test data cleanup after test execution")
             dataSet.createDeleteQueryOperator().executeQueries(conn)
         }
