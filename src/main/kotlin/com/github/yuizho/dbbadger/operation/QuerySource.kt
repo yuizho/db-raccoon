@@ -1,6 +1,7 @@
 package com.github.yuizho.dbbadger.operation
 
 import com.github.yuizho.dbbadger.ColType
+import com.github.yuizho.dbbadger.convert
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.sql.Connection
@@ -26,9 +27,6 @@ internal data class QuerySource(val sql: String,
 }
 
 private fun PreparedStatement.setObject(i: Int, value: String, type: ColType) {
-    val convertedValue = when (type) {
-        ColType.INTEGER -> value.toInt()
-        ColType.DEFAULT -> value
-    }
-    this.setObject(i + 1, convertedValue, type.type)
+    val convertedValue = type.convert(value)
+    this.setObject(i + 1, convertedValue, type.sqlType)
 }
