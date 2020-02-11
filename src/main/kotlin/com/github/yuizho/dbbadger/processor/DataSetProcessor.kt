@@ -1,5 +1,7 @@
 package com.github.yuizho.dbbadger.processor
 
+import com.github.yuizho.dbbadger.ColType
+import com.github.yuizho.dbbadger.annotation.Col
 import com.github.yuizho.dbbadger.annotation.DataSet
 import com.github.yuizho.dbbadger.annotation.Row
 import com.github.yuizho.dbbadger.annotation.Table
@@ -21,7 +23,12 @@ internal fun Table.createInsertQuerySources(): List<QuerySource> {
             .map {
                 QuerySource(
                         sql = "INSERT INTO $name ${it.first}",
-                        params = it.second
+                        params = it.second.map { col ->
+                            QuerySource.Parameter(
+                                    value = col.value,
+                                    type = this.getType(col.name) ?: ColType.DEFAULT
+                            )
+                        }
                 )
             }
 }
@@ -32,18 +39,27 @@ private fun Table.createDeleteQuerySources(): List<QuerySource> {
             .map {
                 QuerySource(
                         sql = "DELETE FROM $name WHERE ${it.first}",
-                        params = it.second
+                        params = it.second.map { col ->
+                            QuerySource.Parameter(
+                                    value = col.value,
+                                    type = this.getType(col.name) ?: ColType.DEFAULT
+                            )
+                        }
                 )
             }
 }
 
-private fun Row.createValuesSyntax(): Pair<String, List<String>> {
-    val keys = vals.map { it.name }
-    return "(${keys.joinToString(", ")}) VALUES (${keys.map { "?" }.joinToString(", ")})" to
-            vals.map { it.value }
+private fun Table.getType(name: String): ColType? {
+    return types.firstOrNull { it.name == name }?.type ?: null
 }
 
-private fun Row.createWhereSyntax(): Pair<String, List<String>> {
+private fun Row.createValuesSyntax(): Pair<String, List<Col>> {
+    val keys = vals.map { it.name }
+    return "(${keys.joinToString(", ")}) VALUES (${keys.map { "?" }.joinToString(", ")})" to
+            vals.toList()
+}
+
+private fun Row.createWhereSyntax(): Pair<String, List<Col>> {
     val ids = vals.filter { it.isId }
     if (ids.isEmpty()) {
         throw DbBadgerDataSetException(
@@ -51,5 +67,5 @@ private fun Row.createWhereSyntax(): Pair<String, List<String>> {
         )
     }
     val conditions = ids.map { "${it.name} = ?" }
-    return "${conditions.joinToString(" AND ")}" to ids.map { it.value }
+    return "${conditions.joinToString(" AND ")}" to ids
 }
