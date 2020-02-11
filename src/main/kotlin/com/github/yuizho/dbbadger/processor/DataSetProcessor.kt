@@ -26,7 +26,7 @@ internal fun Table.createInsertQuerySources(): List<QuerySource> {
                         params = it.second.map { col ->
                             QuerySource.Parameter(
                                     value = col.value,
-                                    type = this.getType(col.name) ?: ColType.DEFAULT
+                                    type = this.getType(col.name)
                             )
                         }
                 )
@@ -42,15 +42,15 @@ private fun Table.createDeleteQuerySources(): List<QuerySource> {
                         params = it.second.map { col ->
                             QuerySource.Parameter(
                                     value = col.value,
-                                    type = this.getType(col.name) ?: ColType.DEFAULT
+                                    type = this.getType(col.name)
                             )
                         }
                 )
             }
 }
 
-private fun Table.getType(name: String): ColType? {
-    return types.firstOrNull { it.name == name }?.type ?: null
+private fun Table.getType(name: String): ColType {
+    return types.firstOrNull { it.name == name }?.type ?: ColType.DEFAULT
 }
 
 private fun Row.createValuesSyntax(): Pair<String, List<Col>> {
