@@ -58,16 +58,15 @@ internal fun ColType.convert(value: String): Any {
             return java.sql.Date.valueOf(date)
         }
         ColType.TIME -> {
-            val time = LocalTime.parse(
-                    value,
-                    DateTimeFormatter.ofPattern("HH:mm:ss.SSSSSSSSS")
-            )
+            val time = LocalTime.parse(value)
             return java.sql.Time.valueOf(time)
         }
         ColType.TIMESTAMP -> {
             val dateTime = LocalDateTime.parse(
                     value,
-                    DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSSSSS")
+                    DateTimeFormatter.ofPattern(
+                            "[yyyy-MM-dd HH:mm:ss.SSSSSSSSS][yyyy-MM-dd HH:mm:ss.SSSSSSSS][yyyy-MM-dd HH:mm:ss.SSSSSSSS][yyyy-MM-dd HH:mm:ss.SSSSSSS][yyyy-MM-dd HH:mm:ss.SSSSSS][yyyy-MM-dd HH:mm:ss.SSSSS][yyyy-MM-dd HH:mm:ss.SSSS][yyyy-MM-dd HH:mm:ss.SSS][yyyy-MM-dd HH:mm:ss.SS][yyyy-MM-dd HH:mm:ss.S][yyyy-MM-dd HH:mm:ss]"
+                    )
             )
             return java.sql.Timestamp.valueOf(dateTime)
         }
