@@ -6,18 +6,36 @@ import com.github.yuizho.dbraccoon.annotation.DataSet
 import com.github.yuizho.dbraccoon.annotation.Row
 import com.github.yuizho.dbraccoon.annotation.Table
 import com.github.yuizho.dbraccoon.exception.DbRaccoonDataSetException
+import com.github.yuizho.dbraccoon.exception.DbRaccoonException
 import com.github.yuizho.dbraccoon.operation.QueryOperator
 import com.github.yuizho.dbraccoon.operation.QuerySource
+import com.github.yuizho.dbraccoon.operation.TableScanner
+import com.github.yuizho.dbraccoon.operation.TypeByColumn
 
-internal fun DataSet.createInsertQueryOperator(): QueryOperator =
-        QueryOperator(testData.flatMap { it.createInsertQuerySources() })
 
-internal fun DataSet.createDeleteQueryOperator(): QueryOperator {
-    return QueryOperator(testData.flatMap { it.createDeleteQuerySources() }
-            .reversed())
+internal fun DataSet.createScanQuerySources(): Map<String, TableScanner> =
+        testData.map { it.name to it.createScanQuerySource() }.toMap()
+
+internal fun DataSet.createInsertQueryOperator(columnByTable: Map<String, TypeByColumn>): QueryOperator =
+        QueryOperator(testData.flatMap {
+            it.createInsertQuerySources(
+                    columnByTable.get(it.name)
+                            ?: throw DbRaccoonException("the table name [${it.name}] is not stored in columnByTable.")
+            )
+        })
+
+internal fun DataSet.createDeleteQueryOperator(columnByTable: Map<String, TypeByColumn>): QueryOperator {
+    return QueryOperator(testData.flatMap {
+        it.createDeleteQuerySources(
+                columnByTable.get(it.name)
+                        ?: throw DbRaccoonException("the table name [${it.name}] is not stored in columnByTable.")
+        )
+    }.reversed())
 }
 
-internal fun Table.createInsertQuerySources(): List<QuerySource> {
+private fun Table.createScanQuerySource(): TableScanner = TableScanner(name)
+
+private fun Table.createInsertQuerySources(typeByCol: TypeByColumn): List<QuerySource> {
     return rows
             .map { it.createValuesSyntax() }
             .map {
@@ -27,13 +45,14 @@ internal fun Table.createInsertQuerySources(): List<QuerySource> {
                             QuerySource.Parameter(
                                     value = col.value,
                                     type = this.getType(col.name)
+                                            ?: typeByCol.getOrDefault(col.name, ColType.DEFAULT)
                             )
                         }
                 )
             }
 }
 
-private fun Table.createDeleteQuerySources(): List<QuerySource> {
+private fun Table.createDeleteQuerySources(typeByCol: TypeByColumn): List<QuerySource> {
     return rows
             .map { it.createWhereSyntax() }
             .map {
@@ -43,14 +62,15 @@ private fun Table.createDeleteQuerySources(): List<QuerySource> {
                             QuerySource.Parameter(
                                     value = col.value,
                                     type = this.getType(col.name)
+                                            ?: typeByCol.getOrDefault(col.name, ColType.DEFAULT)
                             )
                         }
                 )
             }
 }
 
-private fun Table.getType(name: String): ColType {
-    return types.firstOrNull { it.name == name }?.type ?: ColType.DEFAULT
+private fun Table.getType(name: String): ColType? {
+    return types.firstOrNull { it.name == name }?.type
 }
 
 private fun Row.createValuesSyntax(): Pair<String, List<Col>> {

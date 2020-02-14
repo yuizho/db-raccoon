@@ -37,7 +37,12 @@ enum class ColType(internal val sqlType: Int) {
     LONGVARCHAR(Types.LONGVARCHAR),
     VARCHAR(Types.VARCHAR),
 
-    DEFAULT(Types.VARCHAR);
+    DEFAULT(Types.NULL);
+
+    companion object {
+        fun valueOf(sqlType: Int): ColType =
+                values().findLast { it.sqlType == sqlType } ?: DEFAULT
+    }
 }
 
 internal fun ColType.convert(value: String): Any {

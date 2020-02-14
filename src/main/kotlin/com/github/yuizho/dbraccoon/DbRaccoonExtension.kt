@@ -1,8 +1,10 @@
 package com.github.yuizho.dbraccoon
 
 import com.github.yuizho.dbraccoon.annotation.DataSet
+import com.github.yuizho.dbraccoon.operation.TypeByColumn
 import com.github.yuizho.dbraccoon.processor.createDeleteQueryOperator
 import com.github.yuizho.dbraccoon.processor.createInsertQueryOperator
+import com.github.yuizho.dbraccoon.processor.createScanQuerySources
 import org.junit.jupiter.api.extension.AfterTestExecutionCallback
 import org.junit.jupiter.api.extension.BeforeTestExecutionCallback
 import org.junit.jupiter.api.extension.ExtensionContext
@@ -16,6 +18,7 @@ class DbRaccoonExtension @JvmOverloads constructor(
         private val cleanupPhase: CleanupPhase = CleanupPhase.BeforeAndAfterTest
 ) : BeforeTestExecutionCallback, AfterTestExecutionCallback {
     companion object {
+        const val COLUMN_BY_TABLE = "columnByTable"
         val logger: Logger = LoggerFactory.getLogger(DbRaccoonExtension::class.java)
     }
 
@@ -26,10 +29,15 @@ class DbRaccoonExtension @JvmOverloads constructor(
 
         logger.info("start test data preparation before test execution")
         dataSource.connection.use { conn ->
+            val columnByTable = dataSet.createScanQuerySources().map { (name, scanner) ->
+                name to scanner.scanColumnTypes(conn)
+            }.toMap()
+            getStore(context).put(COLUMN_BY_TABLE, columnByTable)
+
             if (cleanupPhase.shouldCleanupBeforeTestExecution) {
-                dataSet.createDeleteQueryOperator().executeQueries(conn)
+                dataSet.createDeleteQueryOperator(columnByTable).executeQueries(conn)
             }
-            dataSet.createInsertQueryOperator().executeQueries(conn)
+            dataSet.createInsertQueryOperator(columnByTable).executeQueries(conn)
         }
     }
 
@@ -40,11 +48,15 @@ class DbRaccoonExtension @JvmOverloads constructor(
         if (!cleanupPhase.shouldCleanupAfterTestExecution) {
             return
         }
-
         dataSource.connection.use { conn ->
             logger.info("start test data cleanup after test execution")
-            dataSet.createDeleteQueryOperator().executeQueries(conn)
+            val columnByTable = getStore(context).remove(COLUMN_BY_TABLE) as Map<String, TypeByColumn>
+            dataSet.createDeleteQueryOperator(columnByTable).executeQueries(conn)
         }
+    }
+
+    private fun getStore(context: ExtensionContext): ExtensionContext.Store {
+        return context.getStore(ExtensionContext.Namespace.create(javaClass, context.requiredTestMethod))
     }
 
     private fun <T : Annotation> Method.getAnnotationFromMethodOrClass(annotationClass: Class<T>): T? {
