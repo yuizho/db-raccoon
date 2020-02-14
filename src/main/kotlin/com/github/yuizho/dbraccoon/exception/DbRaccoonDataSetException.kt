@@ -1,6 +1,6 @@
-package com.github.yuizho.dbbadger.exception
+package com.github.yuizho.dbraccoon.exception
 
-class DbBadgerDataSetException : RuntimeException {
+class DbRaccoonDataSetException : RuntimeException {
     constructor() : super()
     constructor(message: String, cause: Throwable) : super(message, cause)
     constructor(message: String) : super(message)

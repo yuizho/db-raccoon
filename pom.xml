@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.github.yuizho</groupId>
-    <artifactId>db-badger</artifactId>
+    <artifactId>db-raccoon</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <properties>
@@ -94,7 +94,7 @@
                 <artifactId>flyway-maven-plugin</artifactId>
                 <version>${flyway-plugin.version}</version>
                 <configuration>
-                    <url>jdbc:h2:file:./target/db-badger</url>
+                    <url>jdbc:h2:file:./target/db-raccoon</url>
                     <user>sa</user>
                     <locations>
                         <location>filesystem:${project.basedir}/src/test/resources/db/h2_migration/</location>

@@ -1,6 +1,6 @@
-package com.github.yuizho.dbbadger
+package com.github.yuizho.dbraccoon
 
-import com.github.yuizho.dbbadger.annotation.*
+import com.github.yuizho.dbraccoon.annotation.*
 import org.assertj.core.api.Assertions.assertThat
 import org.h2.jdbcx.JdbcDataSource
 import org.junit.jupiter.api.Test
@@ -28,16 +28,16 @@ import java.util.*
         ])
     ], [TypeHint("id", ColType.INTEGER)])
 ])
-class DbBadgerExtensionKotlinTest {
+class DbRaccoonExtensionKotlinTest {
     companion object {
         val dataSource = JdbcDataSource().also {
-            it.setUrl("jdbc:h2:file:./target/db-badger")
+            it.setUrl("jdbc:h2:file:./target/db-raccoon")
             it.user = "sa"
         }
 
         @JvmField
         @RegisterExtension
-        val sampleExtension = DbBadgerExtension(
+        val sampleExtension = DbRaccoonExtension(
                 dataSource = dataSource
         )
     }

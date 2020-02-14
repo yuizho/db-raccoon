@@ -1,6 +1,6 @@
-package com.github.yuizho.dbbadger.annotation
+package com.github.yuizho.dbraccoon.annotation
 
-import com.github.yuizho.dbbadger.ColType
+import com.github.yuizho.dbraccoon.ColType
 
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
 annotation class DataSet(val testData: Array<Table>)

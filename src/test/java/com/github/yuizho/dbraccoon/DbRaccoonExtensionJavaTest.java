@@ -1,9 +1,9 @@
-package com.github.yuizho.dbbadger;
+package com.github.yuizho.dbraccoon;
 
-import com.github.yuizho.dbbadger.annotation.Col;
-import com.github.yuizho.dbbadger.annotation.DataSet;
-import com.github.yuizho.dbbadger.annotation.Row;
-import com.github.yuizho.dbbadger.annotation.Table;
+import com.github.yuizho.dbraccoon.annotation.Col;
+import com.github.yuizho.dbraccoon.annotation.DataSet;
+import com.github.yuizho.dbraccoon.annotation.Row;
+import com.github.yuizho.dbraccoon.annotation.Table;
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -28,16 +28,16 @@ import static org.assertj.core.api.Assertions.assertThat;
                 })
         })
 })
-public class DbBadgerExtensionJavaTest {
+public class DbRaccoonExtensionJavaTest {
     private final JdbcDataSource dataSource;
     @RegisterExtension
-    DbBadgerExtension dbBadgerExtension;
+    DbRaccoonExtension dbRaccoonExtension;
 
     {
         dataSource = new JdbcDataSource();
-        dataSource.setUrl("jdbc:h2:file:./target/db-badger");
+        dataSource.setUrl("jdbc:h2:file:./target/db-raccoon");
         dataSource.setUser("sa");
-        dbBadgerExtension = new DbBadgerExtension(dataSource);
+        dbRaccoonExtension = new DbRaccoonExtension(dataSource);
     }
 
     @Test

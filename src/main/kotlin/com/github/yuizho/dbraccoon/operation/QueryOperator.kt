@@ -1,6 +1,6 @@
-package com.github.yuizho.dbbadger.operation
+package com.github.yuizho.dbraccoon.operation
 
-import com.github.yuizho.dbbadger.exception.DbBadgerException
+import com.github.yuizho.dbraccoon.exception.DbRaccoonException
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.sql.Connection
@@ -20,7 +20,7 @@ internal data class QueryOperator(val querySources: List<QuerySource>) {
                 .onFailure { ex ->
                     conn.rollback()
                     logger.info("rollback")
-                    throw DbBadgerException(ex)
+                    throw DbRaccoonException(ex)
                 }
     }
 }

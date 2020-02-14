@@ -1,4 +1,4 @@
-package com.github.yuizho.dbbadger
+package com.github.yuizho.dbraccoon
 
 import java.sql.Types
 import java.time.LocalDate

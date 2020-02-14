@@ -1,4 +1,4 @@
-package com.github.yuizho.dbbadger
+package com.github.yuizho.dbraccoon
 
 enum class CleanupPhase(internal val shouldCleanupBeforeTestExecution: Boolean,
                         internal val shouldCleanupAfterTestExecution: Boolean) {
