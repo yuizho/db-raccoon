@@ -41,7 +41,6 @@ enum class ColType(internal val sqlType: Int) {
 }
 
 internal fun ColType.convert(value: String): Any {
-    // TODO: 変換のエラー処理を入れたいかも
     return when (this) {
         ColType.BINARY -> Base64.getDecoder().decode(value)
         ColType.VARBINARY,
