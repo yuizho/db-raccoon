@@ -1,8 +1,8 @@
-package com.github.yuizho.dbbadger
+package com.github.yuizho.dbraccoon
 
-import com.github.yuizho.dbbadger.annotation.DataSet
-import com.github.yuizho.dbbadger.processor.createDeleteQueryOperator
-import com.github.yuizho.dbbadger.processor.createInsertQueryOperator
+import com.github.yuizho.dbraccoon.annotation.DataSet
+import com.github.yuizho.dbraccoon.processor.createDeleteQueryOperator
+import com.github.yuizho.dbraccoon.processor.createInsertQueryOperator
 import org.junit.jupiter.api.extension.AfterTestExecutionCallback
 import org.junit.jupiter.api.extension.BeforeTestExecutionCallback
 import org.junit.jupiter.api.extension.ExtensionContext
@@ -11,12 +11,12 @@ import org.slf4j.LoggerFactory
 import java.lang.reflect.Method
 import javax.sql.DataSource
 
-class DbBadgerExtension @JvmOverloads constructor(
+class DbRaccoonExtension @JvmOverloads constructor(
         private val dataSource: DataSource,
         private val cleanupPhase: CleanupPhase = CleanupPhase.BeforeAndAfterTest
 ) : BeforeTestExecutionCallback, AfterTestExecutionCallback {
     companion object {
-        val logger: Logger = LoggerFactory.getLogger(DbBadgerExtension::class.java)
+        val logger: Logger = LoggerFactory.getLogger(DbRaccoonExtension::class.java)
     }
 
     override fun beforeTestExecution(context: ExtensionContext) {
@@ -40,7 +40,7 @@ class DbBadgerExtension @JvmOverloads constructor(
         if (!cleanupPhase.shouldCleanupAfterTestExecution) {
             return
         }
-        
+
         dataSource.connection.use { conn ->
             logger.info("start test data cleanup after test execution")
             dataSet.createDeleteQueryOperator().executeQueries(conn)

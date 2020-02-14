@@ -1,7 +1,7 @@
-package com.github.yuizho.dbbadger.operation
+package com.github.yuizho.dbraccoon.operation
 
-import com.github.yuizho.dbbadger.ColType
-import com.github.yuizho.dbbadger.convert
+import com.github.yuizho.dbraccoon.ColType
+import com.github.yuizho.dbraccoon.convert
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.sql.Connection
