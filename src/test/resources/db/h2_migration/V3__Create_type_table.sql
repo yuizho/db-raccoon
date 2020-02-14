@@ -12,13 +12,13 @@ create table type(
     date_c DATE not null,
     timestamp_c TIMESTAMP not null,
     timestamp_with_time_zone_c TIMESTAMP WITH TIME ZONE not null,
-    binary_c BINARY not null,
-    varbinary_c VARBINARY not null,
-    longvarbinary_c LONGVARBINARY not null,
+    binary_c BINARY null,
+    varbinary_c VARBINARY null,
+    longvarbinary_c LONGVARBINARY null,
     varchar_c VARCHAR not null,
     longvarchar_c LONGVARCHAR not null,
     char_c CHAR not null,
-    blob_c BLOB not null,
+    blob_c BLOB null,
     clob_c CLOB not null,
     PRIMARY KEY(int_c)
 );

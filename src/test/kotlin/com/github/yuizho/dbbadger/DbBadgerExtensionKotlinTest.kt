@@ -108,6 +108,79 @@ class DbBadgerExtensionKotlinTest {
                 Col("date_c", "2014-01-10"),
                 Col("timestamp_c", "2014-01-10 12:33:49.123"),
                 Col("timestamp_with_time_zone_c", "2014-01-10 12:33:49+09"),
+                Col("binary_c", ""),
+                Col("varbinary_c", ""),
+                Col("longvarbinary_c", ""),
+                Col("varchar_c", "abcdefghあいうえお3"),
+                Col("longvarchar_c", "abcdefghあいうえお4"),
+                Col("char_c", "abcdefghあいうえお5"),
+                Col("blob_c", ""),
+                Col("clob_c", "abcdefghあいうえお6")
+            ])
+        ])
+    ])
+    fun `clean-insert works when @TypeHint is not applied to not binary columns`() {
+        dataSource.connection.createStatement().use { stmt ->
+            stmt.executeQuery("SELECT * FROM type").use { rs ->
+                rs.next()
+                assertThat(rs.getInt(1)).isEqualTo(2147483647)
+                assertThat(rs.getBoolean(2)).isTrue()
+                assertThat(rs.getShort(3)).isEqualTo(127)
+                assertThat(rs.getInt(4)).isEqualTo(32767)
+                assertThat(rs.getLong(5)).isEqualTo(9223372036854775807L)
+                assertThat(rs.getBigDecimal(6)).isEqualTo(BigDecimal("9223372036854775807"))
+                assertThat(rs.getDouble(7)).isEqualTo(1.111)
+                assertThat(rs.getDouble(8)).isEqualTo(2.222)
+                assertThat(rs.getDouble(9)).isEqualTo(3.5)
+                val expectedTime = LocalTime.parse(
+                        "12:33:49.123456789",
+                        DateTimeFormatter.ofPattern("HH:mm:ss.SSSSSSSSS")
+                )
+                assertThat(rs.getTime(10)).isEqualTo(java.sql.Time.valueOf(expectedTime))
+                val expectedDate = LocalDate.parse(
+                        "2014-01-10",
+                        DateTimeFormatter.ofPattern("yyyy-MM-dd")
+                )
+                assertThat(rs.getDate(11)).isEqualTo(java.sql.Date.valueOf(expectedDate))
+                val expectedDateTime = LocalDateTime.parse(
+                        "2014-01-10 12:33:49.123",
+                        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")
+                )
+                assertThat(rs.getTimestamp(12)).isEqualTo(java.sql.Timestamp.valueOf(expectedDateTime))
+                val expecteDOffsetDateTime = OffsetDateTime.parse(
+                        "2014-01-10 12:33:49+0900",
+                        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ssX")
+                ).toInstant()
+                assertThat(rs.getTimestamp(13).toInstant()).isEqualTo(expecteDOffsetDateTime)
+                assertThat(rs.getBytes(14)).isEmpty()
+                assertThat(rs.getBytes(15)).isEmpty()
+                assertThat(rs.getBytes(16)).isEmpty()
+                assertThat(rs.getString(17)).isEqualTo("abcdefghあいうえお3")
+                assertThat(rs.getString(18)).isEqualTo("abcdefghあいうえお4")
+                assertThat(rs.getString(19)).isEqualTo("abcdefghあいうえお5")
+                assertThat(rs.getBytes(20)).isEmpty()
+                assertThat(rs.getString(21)).isEqualTo("abcdefghあいうえお6")
+            }
+        }
+    }
+
+    @Test
+    @DataSet([
+        Table("type", [
+            Row([
+                Col("int_c", "2147483647", true),
+                Col("boolean_c", "true"),
+                Col("tinyint_c", "127"),
+                Col("smallint_c", "32767"),
+                Col("bigint_c", "9223372036854775807"),
+                Col("decimal_c", "9223372036854775807"),
+                Col("double_c", "1.111"),
+                Col("float_c", "2.222"),
+                Col("real_c", "3.5"),
+                Col("time_c", "12:33:49.123"),
+                Col("date_c", "2014-01-10"),
+                Col("timestamp_c", "2014-01-10 12:33:49.123"),
+                Col("timestamp_with_time_zone_c", "2014-01-10 12:33:49+09"),
                 Col("binary_c", "YWJjZGVmZzE="),
                 Col("varbinary_c", "abcdefghあいうえお1"),
                 Col("longvarbinary_c", "abcdefghあいうえお2"),
