@@ -108,18 +108,23 @@ class DbRaccoonExtensionKotlinTest {
                 Col("date_c", "2014-01-10"),
                 Col("timestamp_c", "2014-01-10 12:33:49.123"),
                 Col("timestamp_with_time_zone_c", "2014-01-10 12:33:49+09"),
-                Col("binary_c", ""),
-                Col("varbinary_c", ""),
-                Col("longvarbinary_c", ""),
+                Col("binary_c", "YWJjZGVmZzE="),
+                Col("varbinary_c", "abcdefghあいうえお1"),
+                Col("longvarbinary_c", "abcdefghあいうえお2"),
                 Col("varchar_c", "abcdefghあいうえお3"),
                 Col("longvarchar_c", "abcdefghあいうえお4"),
                 Col("char_c", "abcdefghあいうえお5"),
-                Col("blob_c", ""),
+                Col("blob_c", "YWJjZGVmZzI="),
                 Col("clob_c", "abcdefghあいうえお6")
             ])
-        ])
+        ], [
+            // When TypeHint is not appied to BINARY Column,
+            // the Column is scanned as BINARY
+            // TODO: BINARY TYPE might be almost same as VARBINARY...(not BLOB)
+            TypeHint("binary_c", ColType.BINARY)]
+        )
     ])
-    fun `clean-insert works when @TypeHint is not applied to not binary columns`() {
+    fun `clean-insert works when @TypeHint is not applied (except binary columns)`() {
         dataSource.connection.createStatement().use { stmt ->
             stmt.executeQuery("SELECT * FROM type").use { rs ->
                 rs.next()
@@ -152,13 +157,13 @@ class DbRaccoonExtensionKotlinTest {
                         DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ssX")
                 ).toInstant()
                 assertThat(rs.getTimestamp(13).toInstant()).isEqualTo(expecteDOffsetDateTime)
-                assertThat(rs.getBytes(14)).isEmpty()
-                assertThat(rs.getBytes(15)).isEmpty()
-                assertThat(rs.getBytes(16)).isEmpty()
+                assertThat(rs.getBytes(14)).isEqualTo(Base64.getDecoder().decode("YWJjZGVmZzE="))
+                assertThat(rs.getBytes(15)).isEqualTo("abcdefghあいうえお1".toByteArray())
+                assertThat(rs.getBytes(16)).isEqualTo("abcdefghあいうえお2".toByteArray())
                 assertThat(rs.getString(17)).isEqualTo("abcdefghあいうえお3")
                 assertThat(rs.getString(18)).isEqualTo("abcdefghあいうえお4")
                 assertThat(rs.getString(19)).isEqualTo("abcdefghあいうえお5")
-                assertThat(rs.getBytes(20)).isEmpty()
+                assertThat(rs.getBytes(20)).isEqualTo(Base64.getDecoder().decode("YWJjZGVmZzI="))
                 assertThat(rs.getString(21)).isEqualTo("abcdefghあいうえお6")
             }
         }

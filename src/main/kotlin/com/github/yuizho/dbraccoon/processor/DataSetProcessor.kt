@@ -6,51 +6,70 @@ import com.github.yuizho.dbraccoon.annotation.DataSet
 import com.github.yuizho.dbraccoon.annotation.Row
 import com.github.yuizho.dbraccoon.annotation.Table
 import com.github.yuizho.dbraccoon.exception.DbRaccoonDataSetException
-import com.github.yuizho.dbraccoon.operation.QueryOperator
-import com.github.yuizho.dbraccoon.operation.QuerySource
+import com.github.yuizho.dbraccoon.exception.DbRaccoonException
+import com.github.yuizho.dbraccoon.operation.*
 
-internal fun DataSet.createInsertQueryOperator(): QueryOperator =
-        QueryOperator(testData.flatMap { it.createInsertQuerySources() })
 
-internal fun DataSet.createDeleteQueryOperator(): QueryOperator {
-    return QueryOperator(testData.flatMap { it.createDeleteQuerySources() }
-            .reversed())
+internal fun DataSet.createColumnMetadataOperator(): ColumnMetadataScanOperator =
+        ColumnMetadataScanOperator(
+                testData.map { it.createColumnMetadataScanner() }
+        )
+
+internal fun DataSet.createInsertQueryOperator(columnByTable: Map<String, TypeByColumn>): QueryOperator =
+        QueryOperator(testData.flatMap {
+            it.createInsertQueries(
+                    columnByTable.get(it.name)
+                            ?: throw DbRaccoonException("the table name [${it.name}] is not stored in columnByTable.")
+            )
+        })
+
+internal fun DataSet.createDeleteQueryOperator(columnByTable: Map<String, TypeByColumn>): QueryOperator {
+    return QueryOperator(testData.flatMap {
+        it.createDeleteQueries(
+                columnByTable.get(it.name)
+                        ?: throw DbRaccoonException("the table name [${it.name}] is not stored in columnByTable.")
+        )
+    }.reversed())
 }
 
-internal fun Table.createInsertQuerySources(): List<QuerySource> {
+private fun Table.createColumnMetadataScanner(): ColumnMetadataScanner = ColumnMetadataScanner(name)
+
+private fun Table.createInsertQueries(typeByCol: TypeByColumn): List<Query> {
     return rows
             .map { it.createValuesSyntax() }
             .map {
-                QuerySource(
+                Query(
                         sql = "INSERT INTO $name ${it.first}",
                         params = it.second.map { col ->
-                            QuerySource.Parameter(
+                            Query.Parameter(
                                     value = col.value,
                                     type = this.getType(col.name)
+                                            ?: typeByCol.getOrDefault(col.name, ColType.DEFAULT)
                             )
                         }
                 )
             }
 }
 
-private fun Table.createDeleteQuerySources(): List<QuerySource> {
+private fun Table.createDeleteQueries(typeByCol: TypeByColumn): List<Query> {
     return rows
             .map { it.createWhereSyntax() }
             .map {
-                QuerySource(
+                Query(
                         sql = "DELETE FROM $name WHERE ${it.first}",
                         params = it.second.map { col ->
-                            QuerySource.Parameter(
+                            Query.Parameter(
                                     value = col.value,
                                     type = this.getType(col.name)
+                                            ?: typeByCol.getOrDefault(col.name, ColType.DEFAULT)
                             )
                         }
                 )
             }
 }
 
-private fun Table.getType(name: String): ColType {
-    return types.firstOrNull { it.name == name }?.type ?: ColType.DEFAULT
+private fun Table.getType(name: String): ColType? {
+    return types.firstOrNull { it.name == name }?.type
 }
 
 private fun Row.createValuesSyntax(): Pair<String, List<Col>> {
