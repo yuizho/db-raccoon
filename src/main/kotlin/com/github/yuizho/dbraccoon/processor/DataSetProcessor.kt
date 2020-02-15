@@ -7,14 +7,13 @@ import com.github.yuizho.dbraccoon.annotation.Row
 import com.github.yuizho.dbraccoon.annotation.Table
 import com.github.yuizho.dbraccoon.exception.DbRaccoonDataSetException
 import com.github.yuizho.dbraccoon.exception.DbRaccoonException
-import com.github.yuizho.dbraccoon.operation.QueryOperator
-import com.github.yuizho.dbraccoon.operation.QuerySource
-import com.github.yuizho.dbraccoon.operation.TableScanner
-import com.github.yuizho.dbraccoon.operation.TypeByColumn
+import com.github.yuizho.dbraccoon.operation.*
 
 
-internal fun DataSet.createScanQuerySources(): Map<String, TableScanner> =
-        testData.map { it.name to it.createScanQuerySource() }.toMap()
+internal fun DataSet.createColumnMetadataOperator(): ColumnMetadataScanOperator =
+        ColumnMetadataScanOperator(
+                testData.map { it.createColumnMetadataScanner() }
+        )
 
 internal fun DataSet.createInsertQueryOperator(columnByTable: Map<String, TypeByColumn>): QueryOperator =
         QueryOperator(testData.flatMap {
@@ -33,7 +32,7 @@ internal fun DataSet.createDeleteQueryOperator(columnByTable: Map<String, TypeBy
     }.reversed())
 }
 
-private fun Table.createScanQuerySource(): TableScanner = TableScanner(name)
+private fun Table.createColumnMetadataScanner(): ColumnMetadataScanner = ColumnMetadataScanner(name)
 
 private fun Table.createInsertQuerySources(typeByCol: TypeByColumn): List<QuerySource> {
     return rows

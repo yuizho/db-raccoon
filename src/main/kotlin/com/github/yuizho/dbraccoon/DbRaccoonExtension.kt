@@ -1,10 +1,10 @@
 package com.github.yuizho.dbraccoon
 
 import com.github.yuizho.dbraccoon.annotation.DataSet
-import com.github.yuizho.dbraccoon.operation.TypeByColumn
+import com.github.yuizho.dbraccoon.operation.ColumnMetadataByTable
+import com.github.yuizho.dbraccoon.processor.createColumnMetadataOperator
 import com.github.yuizho.dbraccoon.processor.createDeleteQueryOperator
 import com.github.yuizho.dbraccoon.processor.createInsertQueryOperator
-import com.github.yuizho.dbraccoon.processor.createScanQuerySources
 import org.junit.jupiter.api.extension.AfterTestExecutionCallback
 import org.junit.jupiter.api.extension.BeforeTestExecutionCallback
 import org.junit.jupiter.api.extension.ExtensionContext
@@ -18,7 +18,7 @@ class DbRaccoonExtension @JvmOverloads constructor(
         private val cleanupPhase: CleanupPhase = CleanupPhase.BeforeAndAfterTest
 ) : BeforeTestExecutionCallback, AfterTestExecutionCallback {
     companion object {
-        const val COLUMN_BY_TABLE = "columnByTable"
+        const val COLUMN_BY_TABLE = "columnMetadataByTable"
         val logger: Logger = LoggerFactory.getLogger(DbRaccoonExtension::class.java)
     }
 
@@ -29,9 +29,8 @@ class DbRaccoonExtension @JvmOverloads constructor(
 
         logger.info("start test data preparation before test execution")
         dataSource.connection.use { conn ->
-            val columnByTable = dataSet.createScanQuerySources().map { (name, scanner) ->
-                name to scanner.scanColumnTypes(conn)
-            }.toMap()
+            val columnByTable = dataSet.createColumnMetadataOperator().execute(conn)
+            // store column metadata map to pass after test execution phase
             getStore(context).put(COLUMN_BY_TABLE, columnByTable)
 
             if (cleanupPhase.shouldCleanupBeforeTestExecution) {
@@ -50,7 +49,7 @@ class DbRaccoonExtension @JvmOverloads constructor(
         }
         dataSource.connection.use { conn ->
             logger.info("start test data cleanup after test execution")
-            val columnByTable = getStore(context).remove(COLUMN_BY_TABLE) as Map<String, TypeByColumn>
+            val columnByTable = getStore(context).remove(COLUMN_BY_TABLE) as ColumnMetadataByTable
             dataSet.createDeleteQueryOperator(columnByTable).executeQueries(conn)
         }
     }

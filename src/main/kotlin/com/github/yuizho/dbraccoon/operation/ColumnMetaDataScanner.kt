@@ -5,19 +5,19 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.sql.Connection
 
-internal class TableScanner(private val tableName: String) {
+internal class ColumnMetadataScanner(val tableName: String) {
     companion object {
-        val logger: Logger = LoggerFactory.getLogger(TableScanner::class.java)
+        val logger: Logger = LoggerFactory.getLogger(ColumnMetadataScanner::class.java)
     }
 
-    fun scanColumnTypes(conn: Connection): TypeByColumn {
+    fun execute(conn: Connection): TypeByColumn {
         conn.createStatement().use { stmt ->
             val resultSet = stmt.executeQuery("select * from $tableName where 1 = 2")
-            val metaData = resultSet.metaData
-            val columnCount = metaData.columnCount
+            val metadata = resultSet.metaData
+            val columnCount = metadata.columnCount
             val typeByColumn = (1..columnCount).map { i ->
-                metaData.getColumnName(i).toLowerCase() to
-                        ColType.valueOf(metaData.getColumnType(i))
+                metadata.getColumnName(i).toLowerCase() to
+                        ColType.valueOf(metadata.getColumnType(i))
             }.toMap()
             logger.info("typeByColumn: $tableName={$typeByColumn}")
             return typeByColumn
