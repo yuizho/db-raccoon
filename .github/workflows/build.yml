@@ -13,5 +13,10 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 1.8
-    - name: Build with Maven
+    - name: test and build
       run: mvn -B package --file pom.xml
+    - name: upload coverage report to Codecov
+      uses: codecov/codecov-action@v1
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        file: ./target/site/jacoco/jacoco.xml
