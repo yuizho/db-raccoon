@@ -17,6 +17,7 @@
         <h2.version>1.4.200</h2.version>
         <surefire-plugin.version>2.22.2</surefire-plugin.version>
         <flyway-plugin.version>6.2.2</flyway-plugin.version>
+        <jacoco-plugin.version>0.8.5</jacoco-plugin.version>
     </properties>
 
     <dependencies>
@@ -161,6 +162,25 @@
                     <source>${java.version}</source>
                     <target>${java.version}</target>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
