@@ -7,13 +7,13 @@ import org.slf4j.LoggerFactory
 import java.sql.Connection
 import java.sql.PreparedStatement
 
-internal data class QuerySource(val sql: String,
-                                val params: List<Parameter>) {
+internal data class Query(val sql: String,
+                          val params: List<Parameter>) {
     companion object {
-        val logger: Logger = LoggerFactory.getLogger(QuerySource::class.java)
+        val logger: Logger = LoggerFactory.getLogger(Query::class.java)
     }
 
-    fun executeQuery(conn: Connection) {
+    fun execute(conn: Connection) {
         conn.prepareStatement(sql).use { pstmt ->
             params.forEachIndexed { i, param ->
                 pstmt.setObject(i, param.value, param.type)

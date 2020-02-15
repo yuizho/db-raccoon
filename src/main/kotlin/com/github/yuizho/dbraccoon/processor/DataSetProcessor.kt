@@ -17,7 +17,7 @@ internal fun DataSet.createColumnMetadataOperator(): ColumnMetadataScanOperator 
 
 internal fun DataSet.createInsertQueryOperator(columnByTable: Map<String, TypeByColumn>): QueryOperator =
         QueryOperator(testData.flatMap {
-            it.createInsertQuerySources(
+            it.createInsertQueries(
                     columnByTable.get(it.name)
                             ?: throw DbRaccoonException("the table name [${it.name}] is not stored in columnByTable.")
             )
@@ -25,7 +25,7 @@ internal fun DataSet.createInsertQueryOperator(columnByTable: Map<String, TypeBy
 
 internal fun DataSet.createDeleteQueryOperator(columnByTable: Map<String, TypeByColumn>): QueryOperator {
     return QueryOperator(testData.flatMap {
-        it.createDeleteQuerySources(
+        it.createDeleteQueries(
                 columnByTable.get(it.name)
                         ?: throw DbRaccoonException("the table name [${it.name}] is not stored in columnByTable.")
         )
@@ -34,14 +34,14 @@ internal fun DataSet.createDeleteQueryOperator(columnByTable: Map<String, TypeBy
 
 private fun Table.createColumnMetadataScanner(): ColumnMetadataScanner = ColumnMetadataScanner(name)
 
-private fun Table.createInsertQuerySources(typeByCol: TypeByColumn): List<QuerySource> {
+private fun Table.createInsertQueries(typeByCol: TypeByColumn): List<Query> {
     return rows
             .map { it.createValuesSyntax() }
             .map {
-                QuerySource(
+                Query(
                         sql = "INSERT INTO $name ${it.first}",
                         params = it.second.map { col ->
-                            QuerySource.Parameter(
+                            Query.Parameter(
                                     value = col.value,
                                     type = this.getType(col.name)
                                             ?: typeByCol.getOrDefault(col.name, ColType.DEFAULT)
@@ -51,14 +51,14 @@ private fun Table.createInsertQuerySources(typeByCol: TypeByColumn): List<QueryS
             }
 }
 
-private fun Table.createDeleteQuerySources(typeByCol: TypeByColumn): List<QuerySource> {
+private fun Table.createDeleteQueries(typeByCol: TypeByColumn): List<Query> {
     return rows
             .map { it.createWhereSyntax() }
             .map {
-                QuerySource(
+                Query(
                         sql = "DELETE FROM $name WHERE ${it.first}",
                         params = it.second.map { col ->
-                            QuerySource.Parameter(
+                            Query.Parameter(
                                     value = col.value,
                                     type = this.getType(col.name)
                                             ?: typeByCol.getOrDefault(col.name, ColType.DEFAULT)
