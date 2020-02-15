@@ -28,7 +28,7 @@ import java.util.*
         ])
     ], [TypeHint("id", ColType.INTEGER)])
 ])
-class DbRaccoonExtensionKotlinTest {
+class DbRaccoonExtensionH2IT {
     companion object {
         val dataSource = JdbcDataSource().also {
             it.setUrl("jdbc:h2:file:./target/db-raccoon")
