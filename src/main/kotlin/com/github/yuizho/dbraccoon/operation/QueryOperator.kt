@@ -1,5 +1,6 @@
 package com.github.yuizho.dbraccoon.operation
 
+import com.github.yuizho.dbraccoon.exception.DbRaccoonDataSetException
 import com.github.yuizho.dbraccoon.exception.DbRaccoonException
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -20,7 +21,10 @@ internal data class QueryOperator(val querySources: List<Query>) {
                 .onFailure { ex ->
                     conn.rollback()
                     logger.info("rollback")
-                    throw DbRaccoonException(ex)
+                    when (ex) {
+                        is DbRaccoonDataSetException -> throw ex
+                        else -> throw DbRaccoonException(ex)
+                    }
                 }
     }
 }
