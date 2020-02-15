@@ -59,34 +59,38 @@ class DbRaccoonExtensionKotlinTest {
         ])
     ])
     fun `clean-insert works when @DataSet is applied to a method`() {
-        dataSource.connection.createStatement().use { stmt ->
-            stmt.executeQuery("SELECT id, name FROM parent").use { rs ->
-                rs.next()
-                assertThat(rs.getInt("id")).isEqualTo(1)
-                assertThat(rs.getString("name")).isEqualTo("method-parent")
-            }
-            stmt.executeQuery("SELECT id, name, parent_id FROM child").use { rs ->
-                rs.next()
-                assertThat(rs.getInt("id")).isEqualTo(1)
-                assertThat(rs.getString("name")).isEqualTo("method-child")
-                assertThat(rs.getInt("parent_id")).isEqualTo(1)
+        dataSource.connection.use { conn ->
+            conn.createStatement().use { stmt ->
+                stmt.executeQuery("SELECT id, name FROM parent").use { rs ->
+                    rs.next()
+                    assertThat(rs.getInt("id")).isEqualTo(1)
+                    assertThat(rs.getString("name")).isEqualTo("method-parent")
+                }
+                stmt.executeQuery("SELECT id, name, parent_id FROM child").use { rs ->
+                    rs.next()
+                    assertThat(rs.getInt("id")).isEqualTo(1)
+                    assertThat(rs.getString("name")).isEqualTo("method-child")
+                    assertThat(rs.getInt("parent_id")).isEqualTo(1)
+                }
             }
         }
     }
 
     @Test
     fun `clean-insert works when @DataSet is applied to a class`() {
-        dataSource.connection.createStatement().use { stmt ->
-            stmt.executeQuery("SELECT id, name FROM parent").use { rs ->
-                rs.next()
-                assertThat(rs.getInt("id")).isEqualTo(2)
-                assertThat(rs.getString("name")).isEqualTo("class-parent")
-            }
-            stmt.executeQuery("SELECT id, name, parent_id FROM child").use { rs ->
-                rs.next()
-                assertThat(rs.getInt("id")).isEqualTo(2)
-                assertThat(rs.getString("name")).isEqualTo("class-child")
-                assertThat(rs.getInt("parent_id")).isEqualTo(2)
+        dataSource.connection.use { conn ->
+            conn.createStatement().use { stmt ->
+                stmt.executeQuery("SELECT id, name FROM parent").use { rs ->
+                    rs.next()
+                    assertThat(rs.getInt("id")).isEqualTo(2)
+                    assertThat(rs.getString("name")).isEqualTo("class-parent")
+                }
+                stmt.executeQuery("SELECT id, name, parent_id FROM child").use { rs ->
+                    rs.next()
+                    assertThat(rs.getInt("id")).isEqualTo(2)
+                    assertThat(rs.getString("name")).isEqualTo("class-child")
+                    assertThat(rs.getInt("parent_id")).isEqualTo(2)
+                }
             }
         }
     }
@@ -115,7 +119,8 @@ class DbRaccoonExtensionKotlinTest {
                 Col("longvarchar_c", "abcdefghあいうえお4"),
                 Col("char_c", "abcdefghあいうえお5"),
                 Col("blob_c", "YWJjZGVmZzI="),
-                Col("clob_c", "abcdefghあいうえお6")
+                Col("clob_c", "abcdefghあいうえお6"),
+                Col("bit_c", "true")
             ])
         ], [
             // When TypeHint is not appied to BINARY Column,
@@ -125,46 +130,49 @@ class DbRaccoonExtensionKotlinTest {
         )
     ])
     fun `clean-insert works when @TypeHint is not applied (except binary columns)`() {
-        dataSource.connection.createStatement().use { stmt ->
-            stmt.executeQuery("SELECT * FROM type").use { rs ->
-                rs.next()
-                assertThat(rs.getInt(1)).isEqualTo(2147483647)
-                assertThat(rs.getBoolean(2)).isTrue()
-                assertThat(rs.getShort(3)).isEqualTo(127)
-                assertThat(rs.getInt(4)).isEqualTo(32767)
-                assertThat(rs.getLong(5)).isEqualTo(9223372036854775807L)
-                assertThat(rs.getBigDecimal(6)).isEqualTo(BigDecimal("9223372036854775807"))
-                assertThat(rs.getDouble(7)).isEqualTo(1.111)
-                assertThat(rs.getDouble(8)).isEqualTo(2.222)
-                assertThat(rs.getDouble(9)).isEqualTo(3.5)
-                val expectedTime = LocalTime.parse(
-                        "12:33:49.123456789",
-                        DateTimeFormatter.ofPattern("HH:mm:ss.SSSSSSSSS")
-                )
-                assertThat(rs.getTime(10)).isEqualTo(java.sql.Time.valueOf(expectedTime))
-                val expectedDate = LocalDate.parse(
-                        "2014-01-10",
-                        DateTimeFormatter.ofPattern("yyyy-MM-dd")
-                )
-                assertThat(rs.getDate(11)).isEqualTo(java.sql.Date.valueOf(expectedDate))
-                val expectedDateTime = LocalDateTime.parse(
-                        "2014-01-10 12:33:49.123",
-                        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")
-                )
-                assertThat(rs.getTimestamp(12)).isEqualTo(java.sql.Timestamp.valueOf(expectedDateTime))
-                val expecteDOffsetDateTime = OffsetDateTime.parse(
-                        "2014-01-10 12:33:49+0900",
-                        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ssX")
-                ).toInstant()
-                assertThat(rs.getTimestamp(13).toInstant()).isEqualTo(expecteDOffsetDateTime)
-                assertThat(rs.getBytes(14)).isEqualTo(Base64.getDecoder().decode("YWJjZGVmZzE="))
-                assertThat(rs.getBytes(15)).isEqualTo("abcdefghあいうえお1".toByteArray())
-                assertThat(rs.getBytes(16)).isEqualTo("abcdefghあいうえお2".toByteArray())
-                assertThat(rs.getString(17)).isEqualTo("abcdefghあいうえお3")
-                assertThat(rs.getString(18)).isEqualTo("abcdefghあいうえお4")
-                assertThat(rs.getString(19)).isEqualTo("abcdefghあいうえお5")
-                assertThat(rs.getBytes(20)).isEqualTo(Base64.getDecoder().decode("YWJjZGVmZzI="))
-                assertThat(rs.getString(21)).isEqualTo("abcdefghあいうえお6")
+        dataSource.connection.use { conn ->
+            conn.createStatement().use { stmt ->
+                stmt.executeQuery("SELECT * FROM type").use { rs ->
+                    rs.next()
+                    assertThat(rs.getInt(1)).isEqualTo(2147483647)
+                    assertThat(rs.getBoolean(2)).isTrue()
+                    assertThat(rs.getShort(3)).isEqualTo(127)
+                    assertThat(rs.getInt(4)).isEqualTo(32767)
+                    assertThat(rs.getLong(5)).isEqualTo(9223372036854775807L)
+                    assertThat(rs.getBigDecimal(6)).isEqualTo(BigDecimal("9223372036854775807"))
+                    assertThat(rs.getDouble(7)).isEqualTo(1.111)
+                    assertThat(rs.getDouble(8)).isEqualTo(2.222)
+                    assertThat(rs.getDouble(9)).isEqualTo(3.5)
+                    val expectedTime = LocalTime.parse(
+                            "12:33:49.123456789",
+                            DateTimeFormatter.ofPattern("HH:mm:ss.SSSSSSSSS")
+                    )
+                    assertThat(rs.getTime(10)).isEqualTo(java.sql.Time.valueOf(expectedTime))
+                    val expectedDate = LocalDate.parse(
+                            "2014-01-10",
+                            DateTimeFormatter.ofPattern("yyyy-MM-dd")
+                    )
+                    assertThat(rs.getDate(11)).isEqualTo(java.sql.Date.valueOf(expectedDate))
+                    val expectedDateTime = LocalDateTime.parse(
+                            "2014-01-10 12:33:49.123",
+                            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")
+                    )
+                    assertThat(rs.getTimestamp(12)).isEqualTo(java.sql.Timestamp.valueOf(expectedDateTime))
+                    val expecteDOffsetDateTime = OffsetDateTime.parse(
+                            "2014-01-10 12:33:49+0900",
+                            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ssX")
+                    ).toInstant()
+                    assertThat(rs.getTimestamp(13).toInstant()).isEqualTo(expecteDOffsetDateTime)
+                    assertThat(rs.getBytes(14)).isEqualTo(Base64.getDecoder().decode("YWJjZGVmZzE="))
+                    assertThat(rs.getBytes(15)).isEqualTo("abcdefghあいうえお1".toByteArray())
+                    assertThat(rs.getBytes(16)).isEqualTo("abcdefghあいうえお2".toByteArray())
+                    assertThat(rs.getString(17)).isEqualTo("abcdefghあいうえお3")
+                    assertThat(rs.getString(18)).isEqualTo("abcdefghあいうえお4")
+                    assertThat(rs.getString(19)).isEqualTo("abcdefghあいうえお5")
+                    assertThat(rs.getBytes(20)).isEqualTo(Base64.getDecoder().decode("YWJjZGVmZzI="))
+                    assertThat(rs.getString(21)).isEqualTo("abcdefghあいうえお6")
+                    assertThat(rs.getBoolean(22)).isTrue()
+                }
             }
         }
     }
@@ -193,7 +201,8 @@ class DbRaccoonExtensionKotlinTest {
                 Col("longvarchar_c", "abcdefghあいうえお4"),
                 Col("char_c", "abcdefghあいうえお5"),
                 Col("blob_c", "YWJjZGVmZzI="),
-                Col("clob_c", "abcdefghあいうえお6")
+                Col("clob_c", "abcdefghあいうえお6"),
+                Col("bit_c", "true")
             ])
         ], [
             TypeHint("int_c", ColType.INTEGER),
@@ -216,50 +225,54 @@ class DbRaccoonExtensionKotlinTest {
             TypeHint("longvarchar_c", ColType.LONGVARCHAR),
             TypeHint("char_c", ColType.CHAR),
             TypeHint("blob_c", ColType.BLOB),
-            TypeHint("clob_c", ColType.CLOB)
+            TypeHint("clob_c", ColType.CLOB),
+            TypeHint("bit_c", ColType.BIT)
         ])
     ])
     fun `clean-insert works when @TypeHint is applied to columns`() {
-        dataSource.connection.createStatement().use { stmt ->
-            stmt.executeQuery("SELECT * FROM type").use { rs ->
-                rs.next()
-                assertThat(rs.getInt(1)).isEqualTo(2147483647)
-                assertThat(rs.getBoolean(2)).isTrue()
-                assertThat(rs.getShort(3)).isEqualTo(127)
-                assertThat(rs.getInt(4)).isEqualTo(32767)
-                assertThat(rs.getLong(5)).isEqualTo(9223372036854775807L)
-                assertThat(rs.getBigDecimal(6)).isEqualTo(BigDecimal("9223372036854775807"))
-                assertThat(rs.getDouble(7)).isEqualTo(1.111)
-                assertThat(rs.getDouble(8)).isEqualTo(2.222)
-                assertThat(rs.getDouble(9)).isEqualTo(3.5)
-                val expectedTime = LocalTime.parse(
-                        "12:33:49.123456789",
-                        DateTimeFormatter.ofPattern("HH:mm:ss.SSSSSSSSS")
-                )
-                assertThat(rs.getTime(10)).isEqualTo(java.sql.Time.valueOf(expectedTime))
-                val expectedDate = LocalDate.parse(
-                        "2014-01-10",
-                        DateTimeFormatter.ofPattern("yyyy-MM-dd")
-                )
-                assertThat(rs.getDate(11)).isEqualTo(java.sql.Date.valueOf(expectedDate))
-                val expectedDateTime = LocalDateTime.parse(
-                        "2014-01-10 12:33:49.123",
-                        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")
-                )
-                assertThat(rs.getTimestamp(12)).isEqualTo(java.sql.Timestamp.valueOf(expectedDateTime))
-                val expecteDOffsetDateTime = OffsetDateTime.parse(
-                        "2014-01-10 12:33:49+0900",
-                        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ssX")
-                ).toInstant()
-                assertThat(rs.getTimestamp(13).toInstant()).isEqualTo(expecteDOffsetDateTime)
-                assertThat(rs.getBytes(14)).isEqualTo(Base64.getDecoder().decode("YWJjZGVmZzE="))
-                assertThat(rs.getBytes(15)).isEqualTo("abcdefghあいうえお1".toByteArray())
-                assertThat(rs.getBytes(16)).isEqualTo("abcdefghあいうえお2".toByteArray())
-                assertThat(rs.getString(17)).isEqualTo("abcdefghあいうえお3")
-                assertThat(rs.getString(18)).isEqualTo("abcdefghあいうえお4")
-                assertThat(rs.getString(19)).isEqualTo("abcdefghあいうえお5")
-                assertThat(rs.getBytes(20)).isEqualTo(Base64.getDecoder().decode("YWJjZGVmZzI="))
-                assertThat(rs.getString(21)).isEqualTo("abcdefghあいうえお6")
+        dataSource.connection.use { conn ->
+            conn.createStatement().use { stmt ->
+                stmt.executeQuery("SELECT * FROM type").use { rs ->
+                    rs.next()
+                    assertThat(rs.getInt(1)).isEqualTo(2147483647)
+                    assertThat(rs.getBoolean(2)).isTrue()
+                    assertThat(rs.getShort(3)).isEqualTo(127)
+                    assertThat(rs.getInt(4)).isEqualTo(32767)
+                    assertThat(rs.getLong(5)).isEqualTo(9223372036854775807L)
+                    assertThat(rs.getBigDecimal(6)).isEqualTo(BigDecimal("9223372036854775807"))
+                    assertThat(rs.getDouble(7)).isEqualTo(1.111)
+                    assertThat(rs.getDouble(8)).isEqualTo(2.222)
+                    assertThat(rs.getDouble(9)).isEqualTo(3.5)
+                    val expectedTime = LocalTime.parse(
+                            "12:33:49.123456789",
+                            DateTimeFormatter.ofPattern("HH:mm:ss.SSSSSSSSS")
+                    )
+                    assertThat(rs.getTime(10)).isEqualTo(java.sql.Time.valueOf(expectedTime))
+                    val expectedDate = LocalDate.parse(
+                            "2014-01-10",
+                            DateTimeFormatter.ofPattern("yyyy-MM-dd")
+                    )
+                    assertThat(rs.getDate(11)).isEqualTo(java.sql.Date.valueOf(expectedDate))
+                    val expectedDateTime = LocalDateTime.parse(
+                            "2014-01-10 12:33:49.123",
+                            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")
+                    )
+                    assertThat(rs.getTimestamp(12)).isEqualTo(java.sql.Timestamp.valueOf(expectedDateTime))
+                    val expecteDOffsetDateTime = OffsetDateTime.parse(
+                            "2014-01-10 12:33:49+0900",
+                            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ssX")
+                    ).toInstant()
+                    assertThat(rs.getTimestamp(13).toInstant()).isEqualTo(expecteDOffsetDateTime)
+                    assertThat(rs.getBytes(14)).isEqualTo(Base64.getDecoder().decode("YWJjZGVmZzE="))
+                    assertThat(rs.getBytes(15)).isEqualTo("abcdefghあいうえお1".toByteArray())
+                    assertThat(rs.getBytes(16)).isEqualTo("abcdefghあいうえお2".toByteArray())
+                    assertThat(rs.getString(17)).isEqualTo("abcdefghあいうえお3")
+                    assertThat(rs.getString(18)).isEqualTo("abcdefghあいうえお4")
+                    assertThat(rs.getString(19)).isEqualTo("abcdefghあいうえお5")
+                    assertThat(rs.getBytes(20)).isEqualTo(Base64.getDecoder().decode("YWJjZGVmZzI="))
+                    assertThat(rs.getString(21)).isEqualTo("abcdefghあいうえお6")
+                    assertThat(rs.getBoolean(22)).isTrue()
+                }
             }
         }
     }

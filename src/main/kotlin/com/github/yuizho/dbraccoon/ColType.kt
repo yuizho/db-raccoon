@@ -17,6 +17,7 @@ enum class ColType(internal val sqlType: Int) {
     BLOB(Types.BLOB),
 
     BOOLEAN(Types.BOOLEAN),
+    BIT(Types.BIT),
 
     DATE(Types.DATE),
     TIME(Types.TIME),
@@ -47,12 +48,14 @@ enum class ColType(internal val sqlType: Int) {
 
 internal fun ColType.convert(value: String): Any {
     return when (this) {
-        ColType.BINARY -> Base64.getDecoder().decode(value)
         ColType.VARBINARY,
         ColType.LONGVARBINARY -> value.toByteArray()
+
+        ColType.BINARY -> Base64.getDecoder().decode(value)
         ColType.BLOB -> SerialBlob(Base64.getDecoder().decode(value))
 
-        ColType.BOOLEAN -> value.toBoolean()
+        ColType.BOOLEAN,
+        ColType.BIT -> value.toBoolean()
 
         ColType.DATE -> {
             val date = LocalDate.parse(
