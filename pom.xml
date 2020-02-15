@@ -200,8 +200,13 @@
                                     <MYSQL_DATABASE>${test-mysql.db}</MYSQL_DATABASE>
                                     <MYSQL_USER>${test-mysql.user}</MYSQL_USER>
                                     <MYSQL_PASSWORD>${test-mysql.password}</MYSQL_PASSWORD>
-                                    <TZ>Asia/Tokyo</TZ>
                                 </env>
+                                <volumes>
+                                    <bind>
+                                        <!-- set the timezone of host -->
+                                        <volume>/etc/localtime:/etc/localtime:ro</volume>
+                                    </bind>
+                                </volumes>
                             </run>
                         </image>
                     </images>

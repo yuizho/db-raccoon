@@ -8,7 +8,6 @@ import org.junit.jupiter.api.extension.RegisterExtension
 import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.time.LocalTime
-import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
 
@@ -145,11 +144,7 @@ class DbRaccoonExtensionMysqlIT {
                             DateTimeFormatter.ofPattern("HH:mm:ss.SSSSSS")
                     )
                     assertThat(rs.getTime(10)).isEqualTo(java.sql.Time.valueOf(expectedTime))
-                    val expectedOffsetDateTime = OffsetDateTime.parse(
-                            "2014-01-10 12:33:49+09",
-                            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ssX")
-                    )
-                    assertThat(rs.getDate(11)).isEqualTo(java.sql.Date.valueOf(expectedOffsetDateTime.toLocalDate()))
+                    assertThat(rs.getDate(11)).isEqualTo(java.sql.Date.valueOf("2014-01-10"))
                     val expectedDateTime = LocalDateTime.parse(
                             "2014-01-10 12:33:49.123456",
                             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSS")
@@ -232,11 +227,7 @@ class DbRaccoonExtensionMysqlIT {
                             DateTimeFormatter.ofPattern("HH:mm:ss.SSSSSS")
                     )
                     assertThat(rs.getTime(10)).isEqualTo(java.sql.Time.valueOf(expectedTime))
-                    val expectedOffsetDateTime = OffsetDateTime.parse(
-                            "2014-01-10 12:33:49+09",
-                            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ssX")
-                    )
-                    assertThat(rs.getDate(11)).isEqualTo(java.sql.Date.valueOf(expectedOffsetDateTime.toLocalDate()))
+                    assertThat(rs.getDate(11)).isEqualTo(java.sql.Date.valueOf("2014-01-10"))
                     val expectedDateTime = LocalDateTime.parse(
                             "2014-01-10 12:33:49.123456",
                             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSS")
