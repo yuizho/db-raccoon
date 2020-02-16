@@ -104,7 +104,7 @@ class DbRaccoonExtensionMysqlIT {
                 Col("tinyint_c", "127"),
                 Col("smallint_c", "32767"),
                 Col("bigint_c", "9223372036854775807"),
-                Col("decimal_c", "2147483647"),
+                Col("decimal_c", "1234567890.12345"),
                 Col("double_c", "1.111"),
                 Col("float_c", "2.222"),
                 Col("real_c", "3.5"),
@@ -135,7 +135,7 @@ class DbRaccoonExtensionMysqlIT {
                     assertThat(rs.getShort(3)).isEqualTo(127)
                     assertThat(rs.getInt(4)).isEqualTo(32767)
                     assertThat(rs.getLong(5)).isEqualTo(9223372036854775807L)
-                    assertThat(rs.getBigDecimal(6)).isEqualTo(BigDecimal("2147483647"))
+                    assertThat(rs.getBigDecimal(6)).isEqualTo(BigDecimal("1234567890.12345"))
                     assertThat(rs.getDouble(7)).isEqualTo(1.111)
                     assertThat(rs.getDouble(8)).isEqualTo(2.222)
                     assertThat(rs.getDouble(9)).isEqualTo(3.5)
@@ -171,7 +171,7 @@ class DbRaccoonExtensionMysqlIT {
                 Col("tinyint_c", "127"),
                 Col("smallint_c", "32767"),
                 Col("bigint_c", "9223372036854775807"),
-                Col("decimal_c", "2147483647"),
+                Col("decimal_c", "1234567890.12345"),
                 Col("double_c", "1.111"),
                 Col("float_c", "2.222"),
                 Col("real_c", "3.5"),
@@ -218,7 +218,7 @@ class DbRaccoonExtensionMysqlIT {
                     assertThat(rs.getShort(3)).isEqualTo(127)
                     assertThat(rs.getInt(4)).isEqualTo(32767)
                     assertThat(rs.getLong(5)).isEqualTo(9223372036854775807L)
-                    assertThat(rs.getBigDecimal(6)).isEqualTo(BigDecimal("2147483647"))
+                    assertThat(rs.getBigDecimal(6)).isEqualTo(BigDecimal("1234567890.12345"))
                     assertThat(rs.getDouble(7)).isEqualTo(1.111)
                     assertThat(rs.getDouble(8)).isEqualTo(2.222)
                     assertThat(rs.getDouble(9)).isEqualTo(3.5)

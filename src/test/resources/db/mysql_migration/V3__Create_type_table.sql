@@ -4,7 +4,7 @@ create table type(
     tinyint_c TINYINT not null,
     smallint_c SMALLINT not null,
     bigint_c BIGINT not null,
-    decimal_c DECIMAL not null,
+    decimal_c DECIMAL(15, 5) not null,
     double_c DOUBLE not null,
     float_c FLOAT not null,
     real_c REAL not null,
