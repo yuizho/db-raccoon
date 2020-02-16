@@ -14,7 +14,7 @@ jobs:
       with:
         java-version: 1.8
     - name: Build & Test
-      run: mvn -B install --file pom.xml sonar:sonar -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.login=$SONAR_LOGIN -Dsonar.projectKey=$SONAR_PROJECTKEY -Dsonar.organization=$SONAR_ORGANIZATION
+      run: ./mvnw -B install --file pom.xml sonar:sonar -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.login=$SONAR_LOGIN -Dsonar.projectKey=$SONAR_PROJECTKEY -Dsonar.organization=$SONAR_ORGANIZATION
       env:
         SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         SONAR_LOGIN: ${{ secrets.SONAR_LOGIN }}
