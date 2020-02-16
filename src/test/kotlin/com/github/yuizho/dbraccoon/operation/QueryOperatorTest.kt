@@ -1,66 +1,45 @@
 package com.github.yuizho.dbraccoon.operation
 
-import com.github.yuizho.dbraccoon.ColType
 import com.github.yuizho.dbraccoon.exception.DbRaccoonException
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.*
 import java.sql.Connection
-import java.sql.PreparedStatement
 import java.sql.SQLException
 
 
 class QueryOperatorTest {
     @Test
-    fun `executeQueries works(execute query, commmit) when collect parameters are passed`() {
+    fun `executeQueries works when collect parameters are passed`() {
         // mocks
         val connMock = mock(Connection::class.java)
-        val pstmtMock = mock(PreparedStatement::class.java)
-        `when`(connMock.prepareStatement(anyString())).thenReturn(pstmtMock)
-
-        // given
-        val sql = "insert int foo value(?, ?)"
-        val queries = listOf(
-                Query(sql,
-                        listOf(
-                                Query.Parameter("1", ColType.INTEGER),
-                                Query.Parameter("name", ColType.DEFAULT)
-                        )
-                )
-        )
+        val queryMock1 = mock(Query::class.java)
+        val queryMock2 = mock(Query::class.java)
 
         // when
-        QueryOperator(queries).executeQueries(connMock)
+        QueryOperator(listOf(queryMock1, queryMock2)).executeQueries(connMock)
 
         // then
         verify(connMock).autoCommit = false
-        verify(connMock).prepareStatement(sql)
         verify(connMock).commit()
-        verify(pstmtMock).setObject(1, 1, ColType.INTEGER.sqlType)
-        verify(pstmtMock).setString(2, "name")
-        verify(pstmtMock).executeUpdate()
+        verify(queryMock1).execute(connMock)
+        verify(queryMock2).execute(connMock)
     }
 
     @Test
-    fun `executeQueries works(rollback) when incollect parameters are passed`() {
+    fun `executeQueries works(rollback) when Exception is thrown by query object`() {
         // mocks
         val connMock = mock(Connection::class.java)
-        `when`(connMock.prepareStatement(anyString())).thenThrow(SQLException("some error"))
-
-        // given
-        val sql = "insert int foo value(?)"
-        val queries = listOf(
-                Query(sql, listOf(Query.Parameter("1", ColType.INTEGER)))
-        )
+        val queryMock = mock(Query::class.java)
+        `when`(queryMock.execute(connMock)).thenAnswer { throw SQLException("some error") }
 
         // when
-        assertThatThrownBy { QueryOperator(queries).executeQueries(connMock) }
+        assertThatThrownBy { QueryOperator(listOf(queryMock)).executeQueries(connMock) }
                 .isExactlyInstanceOf(DbRaccoonException::class.java)
                 .hasCauseExactlyInstanceOf(SQLException::class.java)
 
         // then
         verify(connMock).autoCommit = false
-        verify(connMock).prepareStatement(sql)
         verify(connMock).rollback()
     }
 }
