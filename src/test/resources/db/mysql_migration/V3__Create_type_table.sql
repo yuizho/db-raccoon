@@ -18,5 +18,6 @@ create table type(
     blob_c BLOB null,
     clob_c TEXT not null,
     bit_c BIT not null,
+    datetime_c DATETIME(6) not null,
     PRIMARY KEY(int_c)
 );

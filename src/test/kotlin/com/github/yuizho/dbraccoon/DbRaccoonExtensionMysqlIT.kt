@@ -117,7 +117,8 @@ class DbRaccoonExtensionMysqlIT {
                 Col("char_c", "abcdefgh3"),
                 Col("blob_c", "YWJjZGVmZzI="),
                 Col("clob_c", "abcdefgh4"),
-                Col("bit_c", "true")
+                Col("bit_c", "true"),
+                Col("datetime_c", "2014-01-10 12:33:49.123456")
             ])
         ], [
             // When TypeHint is not appied to BLOB Column,
@@ -157,6 +158,7 @@ class DbRaccoonExtensionMysqlIT {
                     assertThat(rs.getBytes(17)).isEqualTo(Base64.getDecoder().decode("YWJjZGVmZzI="))
                     assertThat(rs.getString(18)).isEqualTo("abcdefgh4")
                     assertThat(rs.getBoolean(19)).isTrue()
+                    assertThat(rs.getTimestamp(20)).isEqualTo(java.sql.Timestamp.valueOf(expectedDateTime))
                 }
             }
         }
@@ -184,7 +186,8 @@ class DbRaccoonExtensionMysqlIT {
                 Col("char_c", "abcdefgh3"),
                 Col("blob_c", "YWJjZGVmZzI="),
                 Col("clob_c", "abcdefgh4"),
-                Col("bit_c", "true")
+                Col("bit_c", "true"),
+                Col("datetime_c", "2014-01-10 12:33:49.123456")
             ])
         ], [
             TypeHint("int_c", ColType.INTEGER),
@@ -205,7 +208,8 @@ class DbRaccoonExtensionMysqlIT {
             TypeHint("char_c", ColType.CHAR),
             TypeHint("blob_c", ColType.BLOB),
             TypeHint("clob_c", ColType.CLOB),
-            TypeHint("bit_c", ColType.BIT)
+            TypeHint("bit_c", ColType.BIT),
+            TypeHint("datetime_c", ColType.TIMESTAMP)
         ])
     ])
     fun `clean-insert works when @TypeHint is applied to columns`() {
@@ -240,6 +244,7 @@ class DbRaccoonExtensionMysqlIT {
                     assertThat(rs.getBytes(17)).isEqualTo(Base64.getDecoder().decode("YWJjZGVmZzI="))
                     assertThat(rs.getString(18)).isEqualTo("abcdefgh4")
                     assertThat(rs.getBoolean(19)).isTrue()
+                    assertThat(rs.getTimestamp(20)).isEqualTo(java.sql.Timestamp.valueOf(expectedDateTime))
                 }
             }
         }
