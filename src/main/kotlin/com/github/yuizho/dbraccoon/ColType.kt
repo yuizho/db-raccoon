@@ -65,7 +65,12 @@ internal fun ColType.convert(value: String): Any {
             return java.sql.Date.valueOf(date)
         }
         ColType.TIME -> {
-            val time = LocalTime.parse(value)
+            val time = LocalTime.parse(
+                    value,
+                    DateTimeFormatter.ofPattern(
+                            "[HH:mm:ss.SSSSSSSSS][HH:mm:ss.SSSSSSSS][HH:mm:ss.SSSSSSSS][HH:mm:ss.SSSSSSS][HH:mm:ss.SSSSSS][HH:mm:ss.SSSSS][HH:mm:ss.SSSS][HH:mm:ss.SSS][HH:mm:ss.SS][HH:mm:ss.S][HH:mm:ss]"
+                    )
+            )
             return java.sql.Time.valueOf(time)
         }
         ColType.TIMESTAMP -> {
@@ -80,7 +85,7 @@ internal fun ColType.convert(value: String): Any {
         ColType.TIMESTAMP_WITH_TIMEZONE -> {
             return OffsetDateTime.parse(
                     value,
-                    DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ssX")
+                    DateTimeFormatter.ofPattern("[yyyy-MM-dd HH:mm:ssxxx][yyyy-MM-dd HH:mm:ssxx][yyyy-MM-dd HH:mm:ssx]")
             )
         }
 
