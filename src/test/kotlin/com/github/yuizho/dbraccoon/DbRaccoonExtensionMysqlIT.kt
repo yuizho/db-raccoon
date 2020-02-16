@@ -38,7 +38,7 @@ class DbRaccoonExtensionMysqlIT {
         @RegisterExtension
         val sampleExtension = DbRaccoonExtension(
                 dataSource = dataSource,
-                cleanupPhase = CleanupPhase.BeforeAndAfterTest
+                cleanupPhase = CleanupPhase.BEFORE_AND_AFTER_TEST
         )
     }
 
