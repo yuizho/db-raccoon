@@ -20,5 +20,6 @@ create table type(
     char_c CHAR not null,
     blob_c BLOB null,
     clob_c CLOB not null,
+    bit_c BIT not null,
     PRIMARY KEY(int_c)
 );

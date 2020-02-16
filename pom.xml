@@ -14,9 +14,18 @@
         <jupiter.version>5.6.0</jupiter.version>
         <slf4j.version>1.7.30</slf4j.version>
         <assertj.version>3.15.0</assertj.version>
+        <mockito.version>3.2.4</mockito.version>
         <h2.version>1.4.200</h2.version>
+        <mysql.version>8.0.19</mysql.version>
         <surefire-plugin.version>2.22.2</surefire-plugin.version>
+        <failsafe-plugin.version>2.22.2</failsafe-plugin.version>
         <flyway-plugin.version>6.2.2</flyway-plugin.version>
+        <jacoco-plugin.version>0.8.5</jacoco-plugin.version>
+        <docker-plugin.version>0.33.0</docker-plugin.version>
+        <test-mysql.port>13306</test-mysql.port>
+        <test-mysql.user>test</test-mysql.user>
+        <test-mysql.password>password</test-mysql.password>
+        <test-mysql.db>testdb</test-mysql.db>
     </properties>
 
     <dependencies>
@@ -66,6 +75,12 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
             <version>${slf4j.version}</version>
@@ -75,6 +90,12 @@
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
             <version>${h2.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>${mysql.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -90,29 +111,13 @@
                 <version>${surefire-plugin.version}</version>
             </plugin>
             <plugin>
-                <groupId>org.flywaydb</groupId>
-                <artifactId>flyway-maven-plugin</artifactId>
-                <version>${flyway-plugin.version}</version>
-                <configuration>
-                    <url>jdbc:h2:file:./target/db-raccoon</url>
-                    <user>sa</user>
-                    <locations>
-                        <location>filesystem:${project.basedir}/src/test/resources/db/h2_migration/</location>
-                    </locations>
-                </configuration>
-                <dependencies>
-                    <dependency>
-                        <groupId>com.h2database</groupId>
-                        <artifactId>h2</artifactId>
-                        <version>${h2.version}</version>
-                    </dependency>
-                </dependencies>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>${failsafe-plugin.version}</version>
                 <executions>
                     <execution>
-                        <id>h2-test-migration</id>
-                        <phase>test-compile</phase>
                         <goals>
-                            <goal>migrate</goal>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
                         </goals>
                     </execution>
                 </executions>
@@ -161,6 +166,126 @@
                     <source>${java.version}</source>
                     <target>${java.version}</target>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>io.fabric8</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <version>${docker-plugin.version}</version>
+                <configuration>
+                    <images>
+                        <image>
+                            <alias>db-raccoon-mysql-test</alias>
+                            <name>mysql:${mysql.version}</name>
+                            <run>
+                                <!-- docker:start -->
+                                <namingStrategy>alias</namingStrategy>
+                                <ports>${test-mysql.port}:3306</ports>
+                                <wait>
+                                    <time>20000</time>
+                                </wait>
+                                <env>
+                                    <MYSQL_ROOT_PASSWORD>root</MYSQL_ROOT_PASSWORD>
+                                    <MYSQL_DATABASE>${test-mysql.db}</MYSQL_DATABASE>
+                                    <MYSQL_USER>${test-mysql.user}</MYSQL_USER>
+                                    <MYSQL_PASSWORD>${test-mysql.password}</MYSQL_PASSWORD>
+                                </env>
+                                <volumes>
+                                    <bind>
+                                        <!-- set the timezone of host -->
+                                        <volume>/etc/localtime:/etc/localtime:ro</volume>
+                                    </bind>
+                                </volumes>
+                            </run>
+                        </image>
+                    </images>
+                    <keepContainer>false</keepContainer>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>prepare integration test</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>start</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>cleanup integration test</id>
+                        <phase>post-integration-test</phase>
+                        <goals>
+                            <goal>stop</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-maven-plugin</artifactId>
+                <version>${flyway-plugin.version}</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.h2database</groupId>
+                        <artifactId>h2</artifactId>
+                        <version>${h2.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>mysql</groupId>
+                        <artifactId>mysql-connector-java</artifactId>
+                        <version>${mysql.version}</version>
+                    </dependency>
+                </dependencies>
+                <executions>
+                    <execution>
+                        <id>h2-test-migration</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>migrate</goal>
+                        </goals>
+                        <configuration>
+                            <url>jdbc:h2:file:./target/db-raccoon</url>
+                            <user>sa</user>
+                            <locations>
+                                <location>filesystem:${project.basedir}/src/test/resources/db/h2_migration/</location>
+                            </locations>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>mysql-test-migration</id>
+                        <!-- this goal is executed after docker-plugin goal -->
+                        <!-- https://stackoverflow.com/a/2451031 -->
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>migrate</goal>
+                        </goals>
+                        <configuration>
+                            <url>jdbc:mysql://127.0.0.1:${test-mysql.port}/${test-mysql.db}</url>
+                            <user>${test-mysql.user}</user>
+                            <password>${test-mysql.password}</password>
+                            <locations>
+                                <location>filesystem:${project.basedir}/src/test/resources/db/mysql_migration/
+                                </location>
+                            </locations>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

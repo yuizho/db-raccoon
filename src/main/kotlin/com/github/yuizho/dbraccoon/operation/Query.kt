@@ -2,6 +2,7 @@ package com.github.yuizho.dbraccoon.operation
 
 import com.github.yuizho.dbraccoon.ColType
 import com.github.yuizho.dbraccoon.convert
+import com.github.yuizho.dbraccoon.exception.DbRaccoonDataSetException
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.sql.Connection
@@ -31,7 +32,11 @@ private fun PreparedStatement.setObject(i: Int, value: String, type: ColType) {
     if (type == ColType.DEFAULT) {
         this.setString(bindIndex, value)
     } else {
-        val convertedValue = type.convert(value)
+        val convertedValue = try {
+            type.convert(value)
+        } catch (ex: Exception) {
+            throw DbRaccoonDataSetException(ex)
+        }
         this.setObject(bindIndex, convertedValue, type.sqlType)
     }
 }

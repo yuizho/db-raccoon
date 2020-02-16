@@ -15,7 +15,7 @@ import javax.sql.DataSource
 
 class DbRaccoonExtension @JvmOverloads constructor(
         private val dataSource: DataSource,
-        private val cleanupPhase: CleanupPhase = CleanupPhase.BeforeAndAfterTest
+        private val cleanupPhase: CleanupPhase = CleanupPhase.BEFORE_AND_AFTER_TEST
 ) : BeforeTestExecutionCallback, AfterTestExecutionCallback {
     companion object {
         const val COLUMN_BY_TABLE = "columnMetadataByTable"

@@ -12,7 +12,7 @@ internal class ColumnMetadataScanner(val tableName: String) {
 
     fun execute(conn: Connection): TypeByColumn {
         conn.createStatement().use { stmt ->
-            val resultSet = stmt.executeQuery("select * from $tableName where 1 = 2")
+            val resultSet = stmt.executeQuery("SELECT * FROM $tableName WHERE 1 = 2")
             val metadata = resultSet.metaData
             val columnCount = metadata.columnCount
             val typeByColumn = (1..columnCount).map { i ->
