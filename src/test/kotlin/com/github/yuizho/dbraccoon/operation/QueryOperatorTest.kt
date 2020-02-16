@@ -33,7 +33,7 @@ class QueryOperatorTest {
         QueryOperator(queries).executeQueries(connMock)
 
         // then
-        verify(connMock).setAutoCommit(false)
+        verify(connMock).autoCommit = false
         verify(connMock).prepareStatement(sql)
         verify(connMock).commit()
         verify(pstmtMock).setObject(1, 1, ColType.INTEGER.sqlType)
@@ -59,7 +59,7 @@ class QueryOperatorTest {
                 .hasCauseExactlyInstanceOf(SQLException::class.java)
 
         // then
-        verify(connMock).setAutoCommit(false)
+        verify(connMock).autoCommit = false
         verify(connMock).prepareStatement(sql)
         verify(connMock).rollback()
     }
