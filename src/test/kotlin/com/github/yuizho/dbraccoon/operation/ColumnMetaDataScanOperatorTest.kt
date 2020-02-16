@@ -29,7 +29,7 @@ class ColumnMetaDataScanOperatorTest {
     }
 
     @Test
-    fun `execute works(rollback) when some Exception is thrown by scanner object`() {
+    fun `execute works(rollback) when Exception is thrown by scanner object`() {
         // mocks
         val connMock = mock(Connection::class.java)
         val scannerMock = mock(ColumnMetadataScanner::class.java)
