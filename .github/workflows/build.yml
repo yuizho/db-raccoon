@@ -20,3 +20,4 @@ jobs:
         SONAR_LOGIN: ${{ secrets.SONAR_LOGIN }}
         SONAR_PROJECTKEY: ${{ secrets.SONAR_PROJECTKEY }}
         SONAR_ORGANIZATION: ${{ secrets.SONAR_ORGANIZATION }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
