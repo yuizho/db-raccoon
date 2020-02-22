@@ -18,6 +18,8 @@
         <mockk.version>1.9.3</mockk.version>
         <h2.version>1.4.200</h2.version>
         <mysql.version>8.0.19</mysql.version>
+        <postgres.version>12.2</postgres.version>
+        <postgres-jdbc.version>42.2.9</postgres-jdbc.version>
         <surefire-plugin.version>2.22.2</surefire-plugin.version>
         <failsafe-plugin.version>2.22.2</failsafe-plugin.version>
         <flyway-plugin.version>6.2.2</flyway-plugin.version>
@@ -27,6 +29,10 @@
         <test-mysql.user>test</test-mysql.user>
         <test-mysql.password>password</test-mysql.password>
         <test-mysql.db>testdb</test-mysql.db>
+        <test-postgres.port>15432</test-postgres.port>
+        <test-postgres.user>test</test-postgres.user>
+        <test-postgres.password>password</test-postgres.password>
+        <test-postgres.db>testdb</test-postgres.db>
     </properties>
 
     <dependencies>
@@ -103,6 +109,12 @@
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
             <version>${mysql.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>${postgres-jdbc.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -206,14 +218,34 @@
                                 <!-- docker:start -->
                                 <namingStrategy>alias</namingStrategy>
                                 <ports>${test-mysql.port}:3306</ports>
-                                <wait>
-                                    <time>20000</time>
-                                </wait>
                                 <env>
                                     <MYSQL_ROOT_PASSWORD>root</MYSQL_ROOT_PASSWORD>
                                     <MYSQL_DATABASE>${test-mysql.db}</MYSQL_DATABASE>
                                     <MYSQL_USER>${test-mysql.user}</MYSQL_USER>
                                     <MYSQL_PASSWORD>${test-mysql.password}</MYSQL_PASSWORD>
+                                </env>
+                                <volumes>
+                                    <bind>
+                                        <!-- set the timezone of host -->
+                                        <volume>/etc/localtime:/etc/localtime:ro</volume>
+                                    </bind>
+                                </volumes>
+                            </run>
+                        </image>
+                        <image>
+                            <alias>db-raccoon-postgres-test</alias>
+                            <name>postgres:${postgres.version}</name>
+                            <run>
+                                <!-- docker:start -->
+                                <namingStrategy>alias</namingStrategy>
+                                <ports>${test-postgres.port}:5432</ports>
+                                <wait>
+                                    <time>20000</time>
+                                </wait>
+                                <env>
+                                    <POSTGRES_PASSWORD>${test-postgres.password}</POSTGRES_PASSWORD>
+                                    <POSTGRES_USER>${test-postgres.user}</POSTGRES_USER>
+                                    <POSTGRES_DB>${test-postgres.db}</POSTGRES_DB>
                                 </env>
                                 <volumes>
                                     <bind>
@@ -258,6 +290,11 @@
                         <artifactId>mysql-connector-java</artifactId>
                         <version>${mysql.version}</version>
                     </dependency>
+                    <dependency>
+                        <groupId>org.postgresql</groupId>
+                        <artifactId>postgresql</artifactId>
+                        <version>${postgres-jdbc.version}</version>
+                    </dependency>
                 </dependencies>
                 <executions>
                     <execution>
@@ -288,6 +325,24 @@
                             <password>${test-mysql.password}</password>
                             <locations>
                                 <location>filesystem:${project.basedir}/src/test/resources/db/mysql_migration/
+                                </location>
+                            </locations>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>postgres-test-migration</id>
+                        <!-- this goal is executed after docker-plugin goal -->
+                        <!-- https://stackoverflow.com/a/2451031 -->
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>migrate</goal>
+                        </goals>
+                        <configuration>
+                            <url>jdbc:postgresql://127.0.0.1:${test-postgres.port}/${test-postgres.db}</url>
+                            <user>${test-postgres.user}</user>
+                            <password>${test-postgres.password}</password>
+                            <locations>
+                                <location>filesystem:${project.basedir}/src/test/resources/db/postgres_migration/
                                 </location>
                             </locations>
                         </configuration>
