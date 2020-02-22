@@ -17,13 +17,13 @@ import com.github.yuizho.dbraccoon.ColType
  * ```
  * @DataSet(testData = {
  *     @Table(name = "parent_table", rows = {
- *         @Row(values = {
+ *         @Row(columns = {
  *             @Col(name = "id", value = "2", isId = true),
  *             @Col(name = "name", value = "parent_record")
  *         })
  *     }),
  *     @Table(name = "child_table", rows = {
- *         @Row(values = {
+ *         @Row(columns = {
  *             @Col(name = "id", value = "2", isId = true),
  *             @Col(name = "name", value = "child_record"),
  *             @Col(name = "parent_table_id", value = "2"),
@@ -95,9 +95,9 @@ annotation class TypeHint(val name: String, val type: ColType)
 /**
  * The annotation to specify the row to insert test data.
  *
- * @property values columns
+ * @property columns columns
  */
-annotation class Row(val values: Array<Col>)
+annotation class Row(val columns: Array<Col>)
 
 /**
  * The annotation to specify the row to insert test data.

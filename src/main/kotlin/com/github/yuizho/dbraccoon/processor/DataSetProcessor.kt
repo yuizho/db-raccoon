@@ -73,13 +73,13 @@ private fun Table.getType(name: String): ColType? {
 }
 
 private fun Row.createValuesSyntax(): Pair<String, List<Col>> {
-    val keys = values.map { it.name }
+    val keys = columns.map { it.name }
     return "(${keys.joinToString(", ")}) VALUES (${keys.map { "?" }.joinToString(", ")})" to
-            values.toList()
+            columns.toList()
 }
 
 private fun Row.createWhereSyntax(): Pair<String, List<Col>> {
-    val ids = values.filter { it.isId }
+    val ids = columns.filter { it.isId }
     if (ids.isEmpty()) {
         throw DbRaccoonDataSetException(
                 """Please set at least one Id Col [e.g. @Col(name = "id", value = "1", isId = true)]"""

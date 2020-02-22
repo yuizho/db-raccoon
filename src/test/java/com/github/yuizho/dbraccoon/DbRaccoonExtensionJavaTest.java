@@ -15,13 +15,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @DataSet(testData = {
         @Table(name = "parent", rows = {
-                @Row(values = {
+                @Row(columns = {
                         @Col(name = "id", value = "2", isId = true),
                         @Col(name = "name", value = "class-parent")
                 })
         }),
         @Table(name = "child", rows = {
-                @Row(values = {
+                @Row(columns = {
                         @Col(name = "id", value = "2", isId = true),
                         @Col(name = "name", value = "class-child"),
                         @Col(name = "parent_id", value = "2"),
@@ -43,13 +43,13 @@ public class DbRaccoonExtensionJavaTest {
     @Test
     @DataSet(testData = {
             @Table(name = "parent", rows = {
-                    @Row(values = {
+                    @Row(columns = {
                             @Col(name = "id", value = "1", isId = true),
                             @Col(name = "name", value = "method-parent")
                     })
             }),
             @Table(name = "child", rows = {
-                    @Row(values = {
+                    @Row(columns = {
                             @Col(name = "id", value = "1", isId = true),
                             @Col(name = "name", value = "method-child"),
                             @Col(name = "parent_id", value = "1"),
