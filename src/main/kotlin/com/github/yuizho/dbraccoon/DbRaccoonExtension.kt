@@ -24,37 +24,42 @@ class DbRaccoonExtension @JvmOverloads constructor(
 
     override fun beforeTestExecution(context: ExtensionContext) {
         // When @DataSet is neither applied to Method nor Class, do nothing
-        val testMethod = context.requiredTestMethod
-        val dataSet = testMethod.getAnnotationFromMethodOrClass(DataSet::class.java) ?: return
+        val dataSet = getDataSet(context) ?: return
 
         logger.info("start test data preparation before test execution")
-        dataSource.connection.use { conn ->
-            val columnByTable = dataSet.createColumnMetadataOperator().execute(conn)
-            // store column metadata map to pass after test execution phase
-            getStore(context).put(COLUMN_BY_TABLE, columnByTable)
-
+        val columnMetadataByTable = dataSource.connection.use { conn ->
+            val metas = dataSet.createColumnMetadataOperator().execute(conn)
             if (cleanupPhase.shouldCleanupBeforeTestExecution) {
-                dataSet.createDeleteQueryOperator(columnByTable).executeQueries(conn)
+                dataSet.createDeleteQueryOperator(metas).executeQueries(conn)
             }
-            dataSet.createInsertQueryOperator(columnByTable).executeQueries(conn)
+            dataSet.createInsertQueryOperator(metas).executeQueries(conn)
+            metas
         }
+
+        // store column metadata map to pass after test execution phase
+        getStore(context).put(COLUMN_BY_TABLE, columnMetadataByTable)
     }
 
     override fun afterTestExecution(context: ExtensionContext) {
         // When @DataSet is neither applied to Method nor Class, do nothing
-        val testMethod = context.requiredTestMethod
-        val dataSet = testMethod.getAnnotationFromMethodOrClass(DataSet::class.java) ?: return
+        val dataSet = getDataSet(context) ?: return
         if (!cleanupPhase.shouldCleanupAfterTestExecution) {
             return
         }
+
         dataSource.connection.use { conn ->
             logger.info("start test data cleanup after test execution")
-            val columnByTable = getStore(context).remove(COLUMN_BY_TABLE) as ColumnMetadataByTable
-            dataSet.createDeleteQueryOperator(columnByTable).executeQueries(conn)
+            val metas = getStore(context).remove(COLUMN_BY_TABLE) as ColumnMetadataByTable
+            dataSet.createDeleteQueryOperator(metas).executeQueries(conn)
         }
     }
 
-    private fun getStore(context: ExtensionContext): ExtensionContext.Store {
+    internal fun getDataSet(context: ExtensionContext): DataSet? {
+        val testMethod = context.requiredTestMethod
+        return testMethod.getAnnotationFromMethodOrClass(DataSet::class.java)
+    }
+
+    internal fun getStore(context: ExtensionContext): ExtensionContext.Store {
         return context.getStore(ExtensionContext.Namespace.create(javaClass, context.requiredTestMethod))
     }
 
