@@ -1,6 +1,6 @@
 package com.github.yuizho.dbraccoon.exception
 
-class DbRaccoonException : RuntimeException {
+internal class DbRaccoonException : RuntimeException {
     constructor() : super()
     constructor(message: String, cause: Throwable) : super(message, cause)
     constructor(message: String) : super(message)
