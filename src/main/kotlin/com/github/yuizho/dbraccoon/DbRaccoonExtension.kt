@@ -57,8 +57,8 @@ class DbRaccoonExtension @JvmOverloads constructor(
         private val cleanupPhase: CleanupPhase = CleanupPhase.BEFORE_AND_AFTER_TEST
 ) : BeforeTestExecutionCallback, AfterTestExecutionCallback {
     companion object {
-        const val COLUMN_BY_TABLE = "columnMetadataByTable"
-        val logger: Logger = LoggerFactory.getLogger(DbRaccoonExtension::class.java)
+        private const val COLUMN_BY_TABLE = "columnMetadataByTable"
+        private val logger: Logger = LoggerFactory.getLogger(DbRaccoonExtension::class.java)
     }
 
     /**
