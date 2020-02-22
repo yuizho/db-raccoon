@@ -13,6 +13,45 @@ import org.slf4j.LoggerFactory
 import java.lang.reflect.Method
 import javax.sql.DataSource
 
+/**
+ * The JUnit 5 extension class of [DbRaccoon](https://github.com/yuizho/db-raccoon).
+ *
+ * ## features
+ * - clean-insert the specified test data before test execution
+ * - clean the specified test data after test execution
+ *
+ * ## usage
+ * You can register this extension programmatically by annotating the field in your test classes.
+ *
+ * ### Java
+ * ```
+ * @RegisterExtension
+ * private final DbRaccoonExtension dbRaccoonExtension;
+ * {
+ *     JdbcDataSource dataSource = new JdbcDataSource();
+ *     dataSource.setUrl("jdbc:h2:file:./target/db-raccoon");
+ *     dataSource.setUser("sa");
+ *     dbRaccoonExtension = new DbRaccoonExtension(dataSource);
+ * }
+ * ```
+ *
+ * ### Kotlin
+ * ```
+ * companion object {
+ *     @JvmField
+ *     @RegisterExtension
+ *     val dbRaccoon = DbRaccoonExtension(
+ *         dataSource = JdbcDataSource().also {
+ *             it.setUrl("jdbc:h2:file:./target/db-raccoon")
+ *             it.user = "sa"
+ *         }
+ *     )
+ * }
+ * ```
+ *
+ * @property dataSource the jdbc data source to connect the database
+ * @property cleanupPhase the execution phase of the cleanup task (BEFORE_AND_AFTER_TEST is default)
+ */
 class DbRaccoonExtension @JvmOverloads constructor(
         private val dataSource: DataSource,
         private val cleanupPhase: CleanupPhase = CleanupPhase.BEFORE_AND_AFTER_TEST
@@ -22,6 +61,11 @@ class DbRaccoonExtension @JvmOverloads constructor(
         val logger: Logger = LoggerFactory.getLogger(DbRaccoonExtension::class.java)
     }
 
+    /**
+     * The Callback method that is invoked immediately before each test.
+     *
+     * @param context the test context
+     */
     override fun beforeTestExecution(context: ExtensionContext) {
         // When @DataSet is neither applied to Method nor Class, do nothing
         val dataSet = getDataSet(context) ?: return
@@ -40,6 +84,11 @@ class DbRaccoonExtension @JvmOverloads constructor(
         getStore(context).put(COLUMN_BY_TABLE, columnMetadataByTable)
     }
 
+    /**
+     * The Callback method that is invoked immediately after each test.
+     *
+     * @param context the test context
+     */
     override fun afterTestExecution(context: ExtensionContext) {
         // When @DataSet is neither applied to Method nor Class, do nothing
         val dataSet = getDataSet(context) ?: return
