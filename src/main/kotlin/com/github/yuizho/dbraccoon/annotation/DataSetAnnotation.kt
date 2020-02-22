@@ -9,6 +9,6 @@ annotation class Table(val name: String, val rows: Array<Row>, val types: Array<
 
 annotation class TypeHint(val name: String, val type: ColType)
 
-annotation class Row(val vals: Array<Col>)
+annotation class Row(val values: Array<Col>)
 
 annotation class Col(val name: String, val value: String, val isId: Boolean = false)
