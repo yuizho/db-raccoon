@@ -11,7 +11,7 @@ import javax.sql.rowset.serial.SerialBlob
 import javax.sql.rowset.serial.SerialClob
 
 /**
- * This enum class defines the types that are used to identify generic SQL types.
+ * The enum that defines the types that are used to identify generic SQL types.
  *
  * Each type corresponds to [java.sql.Types](https://docs.oracle.com/javase/8/docs/api/java/sql/Types.html)
  *

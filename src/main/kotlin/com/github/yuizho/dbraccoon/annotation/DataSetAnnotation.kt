@@ -3,7 +3,7 @@ package com.github.yuizho.dbraccoon.annotation
 import com.github.yuizho.dbraccoon.ColType
 
 /**
- * This is the main annotation to specify test data.
+ * The main annotation to specify test data.
  *
  * You can apply this annotation to the test method that needs test data before execution.
  *
