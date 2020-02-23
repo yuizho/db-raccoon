@@ -10,6 +10,13 @@ import java.util.*
 import javax.sql.rowset.serial.SerialBlob
 import javax.sql.rowset.serial.SerialClob
 
+/**
+ * The enum that defines the types that are used to identify generic SQL types.
+ *
+ * Each type corresponds to [java.sql.Types](https://docs.oracle.com/javase/8/docs/api/java/sql/Types.html)
+ *
+ * @property sqlType the constant to identify generic SQL types (JDBC types).
+ */
 enum class ColType(internal val sqlType: Int) {
     BINARY(Types.BINARY),
     VARBINARY(Types.VARBINARY),
