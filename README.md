@@ -56,7 +56,7 @@ kotlincompanion object {
 For more information about JUnit 5 Extension Model, please refer to this document.
 https://junit.org/junit5/docs/current/user-guide/#extensions
 
-### Setting up test data
+### Setting up the test data
 You can apply `@DataSet` annotation to the test class or method that needs test data before execution.
 
 When `@DataSet` is applied to both the test class and the test method, the annotation applied to the method will be used
