@@ -2,10 +2,10 @@
 [![Actions Status](https://github.com/yuizho/db-raccoon/workflows/build/badge.svg)](https://github.com/yuizho/db-raccoon/actions)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=yuizho_db-raccoon&metric=alert_status)](https://sonarcloud.io/dashboard?id=yuizho_db-raccoon)
 
-A JUnit5 extension to make test data setup easier.
+A JUnit5 extension to make the test data setup easier.
 
-You can write test data definition on your test codes by the annotations.
-And the test data is cleaned up and is inserted by 🦝 !
+You can write the test data definition on your test codes by the annotations.
+And the test data is cleaned up and inserted by 🦝 !
 
 ## Features
 - cleanup-insert the specified test data before test execution
@@ -110,11 +110,11 @@ fun `test`() {
 ```
 
 #### Id column
-At least one Id column (`@Col.isId` parameter is true) requires in each `@Row`.
+At least one Id column (`isId` parameter in `@Col` is true) requires in each `@Row`.
 The Id column is used when the cleanup task is executed.
 
 ### Converting specified values
-String instances defined as Column value are converted to the following types corresponding to `ColType`.
+String instances defined as column value are converted to the types corresponding to `ColType`.
 
 `ColType` is obtained by Table scannning in default.
 But you can also specify explicitly by `@TypeHint`.
