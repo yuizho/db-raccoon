@@ -143,15 +143,27 @@ Col("binary_column", "YWJjZGVmZzE=")
 ```
 
 #### Conversion Table
+The column value (`value` parameter in `@Col`) are converted to the following types corresponding to `ColType`.
 
-TODO: write all pattern
+|  ColType  |  Column Value Example  | Result |
+| ---- | ---- | ---- |
+|  CHAR<br>VARCHAR<br>LONGVARCHAR  |  "abcdef" | "abcdef" |
+|  VARBINARY<br>LONGVARBINARY  |  "abcdef" |  "abcdef".getBytes() |
+|  BINARY  |  "YWJjZGUxMjM0NQ=="  | Base64.getDecoder().decode("YWJjZGUxMjM0NQ==") |
+|  BLOB  |  "YWJjZGUxMjM0NQ==" | new SerialBlob(Base64.getDecoder().decode("YWJjZGUxMjM0NQ==")) |
+|  CLOB  |  "abcdef" | new SerialClob(value.toCharArray()) |
+|  BOOLEAN<br>BIT  |  "true" | true |
+|  DATE  |  "2019-01-11" | java.sql.Date.valueOf("2019-01-11") |
+|  TIME  |  "12:50:59" | java.sql.Time.valueOf("12:50:59") |
+|  TIMESTAMP  |  "2019-12-31 01:02:03.123456789" | java.sql.Timestamp.valueOf("2019-12-31 01:02:03.123456789") |
+|  TIMESTAMP_WITH_TIMEZONE  |  "2019-10-09T03:53:01+09:00" | java.time.OffsetDateTime.parse("2019-10-09T03:53:01+09:00") |
+|  TINYINT  |  "32767" | (short) 32767 |
+|  INTEGER<br>SMALLINT  |  "2147483647" | 2147483647 |
+|  BIGINT  |  "9223372036854775807" | 9223372036854775807L |
+|  REAL  |  "1.0" | 1.0f |
+|  FLOAT<br>DOUBLE  |  "1.0" | 1.0d |
+|  DECIMAL  |  "1.0" | new BigDecimal("1.0") |
 
-|  ColType  |  Example  |
-| ---- | ---- |
-|  VARBINARY<br>LONGVARBINARY  |  "abcdef" ->   |
-|  BINARY  |  "abcdef" ->   |
-|  BLOB  |  "abcdef" ->   |
-|  BOOLEAN<br>BIT  |  "true" ->  true |
 
 
 ## License
