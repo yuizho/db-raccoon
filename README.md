@@ -61,6 +61,9 @@ https://junit.org/junit5/docs/current/user-guide/#extensions
 ### Setting up the test data
 You can apply `@DataSet` annotation to the test class or method that needs test data before execution.
 
+Each test data is inserted in a defined order. And the inserted test data is cleaned up at the timing that is specified by the [cleanupPhase](#cleanupphase) parameter.
+
+
 When `@DataSet` is applied to both the test class and the test method, the annotation applied to the method will be used
 
 #### Java
