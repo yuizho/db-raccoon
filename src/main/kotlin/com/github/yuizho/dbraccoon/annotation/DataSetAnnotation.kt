@@ -3,11 +3,11 @@ package com.github.yuizho.dbraccoon.annotation
 import com.github.yuizho.dbraccoon.ColType
 
 /**
- * The main annotation to specify test data.
+ * The main annotation to specify the test data.
  *
- * You can apply this annotation to the test method that needs test data before execution.
+ * You can apply this annotation to the test method that needs the test data before execution.
  *
- * Each test data is inserted in a defined order.
+ * Each test data is inserted in a defined order. And the inserted test data is cleaned up at the proper timing.
  *
  * When this annotation is applied to both the test class and the test method,
  * the annotation applied to the method will be used
@@ -57,7 +57,7 @@ import com.github.yuizho.dbraccoon.ColType
 annotation class DataSet(val testData: Array<Table>)
 
 /**
- * The annotation to specify the table to insert test data.
+ * The annotation to specify the table to insert the test data.
  *
  * @property name the table name
  * @property rows rows
@@ -69,7 +69,7 @@ annotation class Table(val name: String, val rows: Array<Row>, val types: Array<
  * The annotation to apply a type hint to the sql.
  *
  * By default, the column type is scanned before executing an insert query.
- * But sometimes, the type scanning returns unexpected column type.
+ * But sometimes, the type scanning returns unexpected column types.
  *
  * In this case, you can specify the column type expressly by this annotation.
  *
@@ -93,14 +93,14 @@ annotation class Table(val name: String, val rows: Array<Row>, val types: Array<
 annotation class TypeHint(val name: String, val type: ColType)
 
 /**
- * The annotation to specify the row to insert test data.
+ * The annotation to specify the row to insert the test data.
  *
  * @property columns columns
  */
 annotation class Row(val columns: Array<Col>)
 
 /**
- * The annotation to specify the row to insert test data.
+ * The annotation to specify the row to insert the test data.
  *
  * At least one Id column (the Col `isId` parameter is true) requires in each row.
  * The Id column is used when the delete task is executed.
