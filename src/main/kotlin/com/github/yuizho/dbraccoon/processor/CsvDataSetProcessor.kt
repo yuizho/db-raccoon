@@ -7,9 +7,6 @@ import com.github.yuizho.dbraccoon.annotation.TypeHint
 import com.github.yuizho.dbraccoon.exception.DbRaccoonDataSetException
 import com.github.yuizho.dbraccoon.exception.DbRaccoonException
 import com.github.yuizho.dbraccoon.operation.*
-import org.apache.commons.csv.CSVFormat
-import org.apache.commons.csv.CSVRecord
-import java.io.StringReader
 
 internal fun CsvDataSet.createColumnMetadataOperator(): ColumnMetadataScanOperator =
         ColumnMetadataScanOperator(
@@ -20,7 +17,8 @@ internal fun CsvDataSet.createInsertQueryOperator(columnByTable: Map<String, Typ
         QueryOperator(testData.flatMap {
             it.createInsertQueries(
                     columnByTable.get(it.name)
-                            ?: throw DbRaccoonException("the table name [${it.name}] is not stored in columnByTable.")
+                            ?: throw DbRaccoonException("the table name [${it.name}] is not stored in columnByTable."),
+                    nullValue
             )
         })
 
@@ -28,15 +26,16 @@ internal fun CsvDataSet.createDeleteQueryOperator(columnByTable: Map<String, Typ
     return QueryOperator(testData.flatMap {
         it.createDeleteQueries(
                 columnByTable.get(it.name)
-                        ?: throw DbRaccoonException("the table name [${it.name}] is not stored in columnByTable.")
+                        ?: throw DbRaccoonException("the table name [${it.name}] is not stored in columnByTable."),
+                nullValue
         )
     }.reversed())
 }
 
 private fun CsvTable.createColumnMetadataScanner(): ColumnMetadataScanner = ColumnMetadataScanner(name)
 
-private fun CsvTable.createInsertQueries(typeByCol: TypeByColumn): List<Query> {
-    return parseCsv()
+private fun CsvTable.createInsertQueries(typeByCol: TypeByColumn, nullValue: String): List<Query> {
+    return parseCsv(nullValue)
             .map { row ->
                 Query(
                         sql = "INSERT INTO $name ${row.createValuesSyntax()}",
@@ -45,33 +44,26 @@ private fun CsvTable.createInsertQueries(typeByCol: TypeByColumn): List<Query> {
             }
 }
 
-private fun CsvTable.createDeleteQueries(typeByCol: TypeByColumn): List<Query> {
-    return parseCsv()
+private fun CsvTable.createDeleteQueries(typeByCol: TypeByColumn, nullValue: String): List<Query> {
+    return parseCsv(nullValue)
             .map { row ->
                 Query(
                         sql = "DELETE FROM $name WHERE ${createWhereSyntax(id.toList())}",
                         params = row
                                 .filter { id.contains(it.key) }
+                                .also {
+                                    if (it.containsValue(null))
+                                        throw DbRaccoonDataSetException("""id column can not set null value""")
+                                    it
+                                }
                                 .createQueryParameter(types.toList(), typeByCol)
                 )
             }
 }
 
-// TODO: create parser factory class
-private fun CsvTable.parseCsv(): List<Column> {
+private fun CsvTable.parseCsv(nullValue: String): List<Column> {
     val csv = rows.joinToString("\n")
-    return StringReader(csv).use { sr ->
-        val records: Iterable<CSVRecord> =
-                CSVFormat.DEFAULT
-                        .withAllowDuplicateHeaderNames(false)
-                        .withQuote('\'')
-                        .withEscape('\\')
-                        .withRecordSeparator("\n")
-                        .withIgnoreSurroundingSpaces()
-                        .withFirstRecordAsHeader()
-                        .parse(sr)
-        records.map { it.toMap() }
-    }
+    return CsvParser(nullValue).parse(csv)
 }
 
 private fun Column.createQueryParameter(typeHints: List<TypeHint>, typeByCol: TypeByColumn): List<Query.Parameter> {
@@ -91,11 +83,10 @@ private fun Column.createValuesSyntax(): String {
 
 private fun createWhereSyntax(ids: List<String>): String {
     if (ids.isEmpty()) {
-        // TODO: decent comments
-        throw DbRaccoonDataSetException("Please set at least one Id")
+        throw DbRaccoonDataSetException("""Please set at least one id [e.g. @CsvTable(id={"id"}, ...)]""")
     }
     val conditions = ids.map { "$it = ?" }
     return "${conditions.joinToString(" AND ")}"
 }
 
-internal typealias Column = Map<String, String>
+internal typealias Column = Map<String, String?>

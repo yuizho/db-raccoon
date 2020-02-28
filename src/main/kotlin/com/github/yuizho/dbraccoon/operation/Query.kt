@@ -24,16 +24,16 @@ internal data class Query(val sql: String,
         }
     }
 
-    internal data class Parameter(val value: String, val type: ColType)
+    internal data class Parameter(val value: String?, val type: ColType)
 }
 
-private fun PreparedStatement.setObject(i: Int, value: String, type: ColType) {
+private fun PreparedStatement.setObject(i: Int, value: String?, type: ColType) {
     val bindIndex = i + 1
     if (type == ColType.DEFAULT) {
         this.setString(bindIndex, value)
     } else {
         val convertedValue = try {
-            type.convert(value)
+            if (value != null) type.convert(value) else null
         } catch (ex: Exception) {
             throw DbRaccoonDataSetException(ex)
         }

@@ -132,6 +132,6 @@ annotation class Row(val columns: Array<Col>)
 annotation class Col(val name: String, val value: String, val isId: Boolean = false)
 
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
-annotation class CsvDataSet(val testData: Array<CsvTable>)
+annotation class CsvDataSet(val testData: Array<CsvTable>, val nullValue: String = "[null]")
 
 annotation class CsvTable(val name: String, val rows: Array<String>, val id: Array<String>, val types: Array<TypeHint> = [])

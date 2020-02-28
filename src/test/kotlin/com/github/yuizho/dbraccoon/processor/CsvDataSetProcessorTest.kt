@@ -1,7 +1,8 @@
 package com.github.yuizho.dbraccoon.processor
 
 import com.github.yuizho.dbraccoon.ColType
-import com.github.yuizho.dbraccoon.annotation.*
+import com.github.yuizho.dbraccoon.annotation.CsvDataSet
+import com.github.yuizho.dbraccoon.annotation.CsvTable
 import com.github.yuizho.dbraccoon.exception.DbRaccoonDataSetException
 import com.github.yuizho.dbraccoon.exception.DbRaccoonException
 import com.github.yuizho.dbraccoon.operation.ColumnMetadataScanner
@@ -16,7 +17,9 @@ class CsvDataSetProcessorTest {
     @CsvDataSet([
         CsvTable("test", [
             "id, name",
-            "1, foo"
+            "1, foo",
+            "2, ''",
+            "3, [null]"
         ], ["id"])
     ])
     class SingleTableSingleId {}
@@ -46,6 +49,20 @@ class CsvDataSetProcessorTest {
                                         Query.Parameter("1", ColType.DEFAULT),
                                         Query.Parameter("foo", ColType.DEFAULT)
                                 )
+                        ),
+                        Tuple(
+                                "INSERT INTO test (id, name) VALUES (?, ?)",
+                                listOf(
+                                        Query.Parameter("2", ColType.DEFAULT),
+                                        Query.Parameter("", ColType.DEFAULT)
+                                )
+                        ),
+                        Tuple(
+                                "INSERT INTO test (id, name) VALUES (?, ?)",
+                                listOf(
+                                        Query.Parameter("3", ColType.DEFAULT),
+                                        Query.Parameter(null, ColType.DEFAULT)
+                                )
                         )
                 )
     }
@@ -68,6 +85,18 @@ class CsvDataSetProcessorTest {
         assertThat(actual.querySources)
                 .extracting("sql", "params")
                 .containsExactly(
+                        Tuple(
+                                "DELETE FROM test WHERE id = ?",
+                                listOf(
+                                        Query.Parameter("3", ColType.DEFAULT)
+                                )
+                        ),
+                        Tuple(
+                                "DELETE FROM test WHERE id = ?",
+                                listOf(
+                                        Query.Parameter("2", ColType.DEFAULT)
+                                )
+                        ),
                         Tuple(
                                 "DELETE FROM test WHERE id = ?",
                                 listOf(
@@ -170,6 +199,25 @@ class CsvDataSetProcessorTest {
     @Test
     fun `CsvDataSet#createDeleteQueryOperator throws exception when the row doesn't have Id column`() {
         val csvDataSet = NoIdColumn::class.java.getAnnotation(CsvDataSet::class.java)
+
+        assertThatThrownBy {
+            csvDataSet.createDeleteQueryOperator(
+                    mapOf("test" to mapOf("id" to ColType.DEFAULT, "name" to ColType.DEFAULT))
+            )
+        }.isExactlyInstanceOf(DbRaccoonDataSetException::class.java)
+    }
+
+    @CsvDataSet([
+        CsvTable("test", [
+            "id, name",
+            "NIL, foo"
+        ], ["id"])
+    ], "NIL")
+    class NullId {}
+
+    @Test
+    fun `CsvDataSet#createDeleteQueryOperator throws exception when there is null id column`() {
+        val csvDataSet = NullId::class.java.getAnnotation(CsvDataSet::class.java)
 
         assertThatThrownBy {
             csvDataSet.createDeleteQueryOperator(
