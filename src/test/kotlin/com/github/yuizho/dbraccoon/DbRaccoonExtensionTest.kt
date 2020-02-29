@@ -166,38 +166,6 @@ class DbRaccoonExtensionTest {
             verify(exactly = 1) { storeMock.remove("columnMetadataByTable") }
         }
 
-        @ParameterizedTest(name = "when {0} is passed")
-        @CsvSource(value = ["BEFORE_TEST"])
-        fun `afterTestExecution delete does not work`(cleanupPhase: CleanupPhase) {
-            // mocks
-            val (dataSourceMock, connMock) = dataSourceMocks()
-            val contextMock = mockk<ExtensionContext>(relaxUnitFun = true)
-            val (dataSetMock, metadataOperatorMock, queryOperatorMock) = dataSetMocks()
-
-            val storeMock = mockk<ExtensionContext.Store>(relaxUnitFun = true)
-            val expectedColumnByTable = mapOf("table" to mapOf("1" to ColType.INTEGER))
-            every { storeMock.remove(any()) } returns expectedColumnByTable
-
-            // given
-            val dbRaccoonExtension = spyk(
-                    DbRaccoonExtension(
-                            dataSourceMock,
-                            cleanupPhase
-                    )
-            )
-            every { dbRaccoonExtension.getStore(contextMock) } returns storeMock
-            every { dbRaccoonExtension.getDataSet(contextMock) } returns dataSetMock
-            every { dbRaccoonExtension.getCsvDataSet(contextMock) } returns null
-
-            // when
-            dbRaccoonExtension.afterTestExecution(contextMock)
-
-            // then
-            verify(exactly = 0) { dataSetMock.createDeleteQueryOperator(any()) }
-            verify(exactly = 0) { queryOperatorMock.executeQueries(any()) }
-            verify(exactly = 0) { storeMock.remove(any()) }
-        }
-
         @DataSet([
             Table(name = "onClass", rows = [])
         ])
@@ -362,38 +330,6 @@ class DbRaccoonExtensionTest {
             verify(exactly = 1) { csvDataSetMock.createDeleteQueryOperator(expectedColumnByTable) }
             verify(exactly = 1) { queryOperatorMock.executeQueries(connMock) }
             verify(exactly = 1) { storeMock.remove("columnMetadataByTable") }
-        }
-
-        @ParameterizedTest(name = "when {0} is passed")
-        @CsvSource(value = ["BEFORE_TEST"])
-        fun `afterTestExecution delete does not work`(cleanupPhase: CleanupPhase) {
-            // mocks
-            val (dataSourceMock, connMock) = dataSourceMocks()
-            val contextMock = mockk<ExtensionContext>(relaxUnitFun = true)
-            val (csvDataSetMock, metadataOperatorMock, queryOperatorMock) = csvDataSetMocks()
-
-            val storeMock = mockk<ExtensionContext.Store>(relaxUnitFun = true)
-            val expectedColumnByTable = mapOf("table" to mapOf("1" to ColType.INTEGER))
-            every { storeMock.remove(any()) } returns expectedColumnByTable
-
-            // given
-            val dbRaccoonExtension = spyk(
-                    DbRaccoonExtension(
-                            dataSourceMock,
-                            cleanupPhase
-                    )
-            )
-            every { dbRaccoonExtension.getStore(contextMock) } returns storeMock
-            every { dbRaccoonExtension.getDataSet(contextMock) } returns null
-            every { dbRaccoonExtension.getCsvDataSet(contextMock) } returns csvDataSetMock
-
-            // when
-            dbRaccoonExtension.afterTestExecution(contextMock)
-
-            // then
-            verify(exactly = 0) { csvDataSetMock.createDeleteQueryOperator(any()) }
-            verify(exactly = 0) { queryOperatorMock.executeQueries(any()) }
-            verify(exactly = 0) { storeMock.remove(any()) }
         }
 
         @CsvDataSet([
@@ -594,6 +530,73 @@ class DbRaccoonExtensionTest {
             every { dbRaccoonExtension.getStore(contextMock) } returns storeMock
             every { dbRaccoonExtension.getDataSet(contextMock) } returns null
             every { dbRaccoonExtension.getCsvDataSet(contextMock) } returns null
+
+            // when
+            dbRaccoonExtension.afterTestExecution(contextMock)
+
+            // then
+            verify(exactly = 0) { dataSetMock.createDeleteQueryOperator(any()) }
+            verify(exactly = 0) { dataSetMock.createInsertQueryOperator(any()) }
+            verify(exactly = 0) { queryOperatorMock.executeQueries(any()) }
+
+            verify(exactly = 0) { csvDataSetMock.createDeleteQueryOperator(any()) }
+            verify(exactly = 0) { csvDataSetMock.createInsertQueryOperator(any()) }
+            verify(exactly = 0) { csvQueryOperatorMock.executeQueries(any()) }
+
+            verify(exactly = 1) { storeMock.remove("columnMetadataByTable") }
+        }
+
+        @ParameterizedTest(name = "when {0} is passed")
+        @CsvSource(value = ["BEFORE_TEST"])
+        fun `afterTestExecution delete does not work`(cleanupPhase: CleanupPhase) {
+            // mocks
+            val (dataSourceMock, connMock) = dataSourceMocks()
+            val contextMock = mockk<ExtensionContext>(relaxUnitFun = true)
+            val (dataSetMock, metadataOperatorMock, queryOperatorMock) = dataSetMocks()
+            val (csvDataSetMock, csvMetadataOperatorMock, csvQueryOperatorMock) = csvDataSetMocks()
+
+            val storeMock = mockk<ExtensionContext.Store>(relaxUnitFun = true)
+            val expectedColumnByTable = mapOf("table" to mapOf("1" to ColType.INTEGER))
+            every { storeMock.remove(any()) } returns expectedColumnByTable
+
+            // given
+            val dbRaccoonExtension = spyk(
+                    DbRaccoonExtension(
+                            dataSourceMock,
+                            cleanupPhase
+                    )
+            )
+            every { dbRaccoonExtension.getStore(contextMock) } returns storeMock
+            every { dbRaccoonExtension.getDataSet(contextMock) } returns dataSetMock
+            every { dbRaccoonExtension.getCsvDataSet(contextMock) } returns csvDataSetMock
+
+            // when
+            dbRaccoonExtension.afterTestExecution(contextMock)
+
+            // then
+            verify(exactly = 0) { dataSetMock.createDeleteQueryOperator(any()) }
+            verify(exactly = 0) { queryOperatorMock.executeQueries(any()) }
+            verify(exactly = 0) { csvDataSetMock.createDeleteQueryOperator(any()) }
+            verify(exactly = 0) { csvQueryOperatorMock.executeQueries(any()) }
+            verify(exactly = 0) { storeMock.remove(any()) }
+        }
+
+        @Test
+        fun `afterTestExecution do nothing when there is no store data`() {
+            // mocks
+            val (dataSourceMock) = dataSourceMocks()
+            val contextMock = mockk<ExtensionContext>(relaxUnitFun = true)
+            val (dataSetMock, metadataOperatorMock, queryOperatorMock) = dataSetMocks()
+            val (csvDataSetMock, csvMetadataOperatorMock, csvQueryOperatorMock) = csvDataSetMocks()
+            val storeMock = mockk<ExtensionContext.Store>(relaxUnitFun = true)
+            // no store data
+            every { storeMock.remove(any()) } returns null
+
+            // given
+            val dbRaccoonExtension = spyk(DbRaccoonExtension(dataSourceMock))
+            every { dbRaccoonExtension.getStore(contextMock) } returns storeMock
+            every { dbRaccoonExtension.getDataSet(contextMock) } returns dataSetMock
+            every { dbRaccoonExtension.getCsvDataSet(contextMock) } returns csvDataSetMock
 
             // when
             dbRaccoonExtension.afterTestExecution(contextMock)

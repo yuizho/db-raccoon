@@ -72,6 +72,7 @@ class DbRaccoonExtension @JvmOverloads constructor(
         val columnMetadataByTable = dataSource.connection.use { conn ->
             // When @DataSet is neither applied to Method nor Class, do nothing
             val dataSetMetas = getDataSet(context)?.let { dataSet ->
+                logger.info("start handling @DataSet test data")
                 val metas = dataSet.createColumnMetadataOperator().execute(conn)
                 if (cleanupPhase.shouldCleanupBeforeTestExecution) {
                     dataSet.createDeleteQueryOperator(metas).executeQueries(conn)
@@ -82,6 +83,7 @@ class DbRaccoonExtension @JvmOverloads constructor(
 
             // When @CsvDataSet is neither applied to Method nor Class, do nothing
             val csvDataSetMetas = getCsvDataSet(context)?.let { csvDataSet ->
+                logger.info("start handling @CsvDataSet test data")
                 val metas = csvDataSet.createColumnMetadataOperator().execute(conn)
                 if (cleanupPhase.shouldCleanupBeforeTestExecution) {
                     csvDataSet.createDeleteQueryOperator(metas).executeQueries(conn)
@@ -106,20 +108,22 @@ class DbRaccoonExtension @JvmOverloads constructor(
      * @param context the test context
      */
     override fun afterTestExecution(context: ExtensionContext) {
+        logger.info("start test data cleanup after test execution")
         if (!cleanupPhase.shouldCleanupAfterTestExecution) {
             return
         }
-        val metas = getStore(context).remove(COLUMN_BY_TABLE) as ColumnMetadataByTable
+        val metas = getStore(context).remove(COLUMN_BY_TABLE) as? ColumnMetadataByTable ?: return
 
-        logger.info("start test data cleanup after test execution")
         dataSource.connection.use { conn ->
             // When @DataSet is neither applied to Method nor Class, do nothing
             getDataSet(context)?.also { dataSet ->
+                logger.info("start handling @DataSet test data")
                 dataSet.createDeleteQueryOperator(metas).executeQueries(conn)
             }
 
             // When @CsvDataSet is neither applied to Method nor Class, do nothing
             getCsvDataSet(context)?.also { csvDataSet ->
+                logger.info("start handling @CsvDataSet test data")
                 csvDataSet.createDeleteQueryOperator(metas).executeQueries(conn)
             }
         }
