@@ -3,6 +3,7 @@ package com.github.yuizho.dbraccoon.processor
 import com.github.yuizho.dbraccoon.ColType
 import com.github.yuizho.dbraccoon.annotation.CsvDataSet
 import com.github.yuizho.dbraccoon.annotation.CsvTable
+import com.github.yuizho.dbraccoon.annotation.TypeHint
 import com.github.yuizho.dbraccoon.exception.DbRaccoonDataSetException
 import com.github.yuizho.dbraccoon.exception.DbRaccoonException
 import com.github.yuizho.dbraccoon.operation.ColumnMetadataScanner
@@ -11,6 +12,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.assertj.core.groups.Tuple
 import org.junit.jupiter.api.Test
+import java.lang.reflect.Type
 
 class CsvDataSetProcessorTest {
 
@@ -115,12 +117,19 @@ class CsvDataSetProcessorTest {
     }
 
     @CsvDataSet([
-        CsvTable("test", [
-            "id, name",
-            "1, foo"
-        ], ["id", "name"]),
-        CsvTable("test2", [
-            "id2, name2",
+        CsvTable(name = "test",
+                rows = [
+                    "id, name",
+                    "1, foo"
+                ],
+                id = ["ID", "NAME"],
+                types = [
+                    TypeHint("id", ColType.SMALLINT),
+                    TypeHint("Name", ColType.CHAR)
+                ]
+        ),
+        CsvTable("TEST2", [
+            "ID2, NAME2",
             "2, bar"
         ], ["id2", "name2"])
     ])
@@ -131,7 +140,7 @@ class CsvDataSetProcessorTest {
         val csvDataSet = MultipleTableMultipleId::class.java.getAnnotation(CsvDataSet::class.java)
         val actual = csvDataSet.createInsertQueryOperator(
                 mapOf(
-                        "test" to mapOf("id" to ColType.DEFAULT, "name" to ColType.DEFAULT),
+                        "test" to mapOf("id" to ColType.INTEGER, "name" to ColType.VARCHAR),
                         "test2" to mapOf("id2" to ColType.INTEGER, "name2" to ColType.VARCHAR)
                 )
         )
@@ -142,12 +151,12 @@ class CsvDataSetProcessorTest {
                         Tuple(
                                 "INSERT INTO test (id, name) VALUES (?, ?)",
                                 listOf(
-                                        Query.Parameter("1", ColType.DEFAULT),
-                                        Query.Parameter("foo", ColType.DEFAULT)
+                                        Query.Parameter("1", ColType.SMALLINT),
+                                        Query.Parameter("foo", ColType.CHAR)
                                 )
                         ),
                         Tuple(
-                                "INSERT INTO test2 (id2, name2) VALUES (?, ?)",
+                                "INSERT INTO TEST2 (ID2, NAME2) VALUES (?, ?)",
                                 listOf(
                                         Query.Parameter("2", ColType.INTEGER),
                                         Query.Parameter("bar", ColType.VARCHAR)
@@ -171,17 +180,17 @@ class CsvDataSetProcessorTest {
                 .containsExactly(
                         // the order is reversed to delete child table before parent table
                         Tuple(
-                                "DELETE FROM test2 WHERE id2 = ? AND name2 = ?",
+                                "DELETE FROM TEST2 WHERE id2 = ? AND name2 = ?",
                                 listOf(
                                         Query.Parameter("2", ColType.INTEGER),
                                         Query.Parameter("bar", ColType.VARCHAR)
                                 )
                         ),
                         Tuple(
-                                "DELETE FROM test WHERE id = ? AND name = ?",
+                                "DELETE FROM test WHERE ID = ? AND NAME = ?",
                                 listOf(
-                                        Query.Parameter("1", ColType.DEFAULT),
-                                        Query.Parameter("foo", ColType.DEFAULT)
+                                        Query.Parameter("1", ColType.SMALLINT),
+                                        Query.Parameter("foo", ColType.CHAR)
                                 )
                         )
 

@@ -16,7 +16,7 @@ internal fun CsvDataSet.createColumnMetadataOperator(): ColumnMetadataScanOperat
 internal fun CsvDataSet.createInsertQueryOperator(columnByTable: Map<String, TypeByColumn>): QueryOperator =
         QueryOperator(testData.flatMap {
             it.createInsertQueries(
-                    columnByTable.get(it.name)
+                    columnByTable[it.name.toLowerCase()]
                             ?: throw DbRaccoonException("the table name [${it.name}] is not stored in columnByTable."),
                     nullValue
             )
@@ -25,7 +25,7 @@ internal fun CsvDataSet.createInsertQueryOperator(columnByTable: Map<String, Typ
 internal fun CsvDataSet.createDeleteQueryOperator(columnByTable: Map<String, TypeByColumn>): QueryOperator {
     return QueryOperator(testData.flatMap {
         it.createDeleteQueries(
-                columnByTable.get(it.name)
+                columnByTable[it.name.toLowerCase()]
                         ?: throw DbRaccoonException("the table name [${it.name}] is not stored in columnByTable."),
                 nullValue
         )
@@ -50,7 +50,7 @@ private fun CsvTable.createDeleteQueries(typeByCol: TypeByColumn, nullValue: Str
                 Query(
                         sql = "DELETE FROM $name WHERE ${createWhereSyntax(id.toList())}",
                         params = row
-                                .filter { id.contains(it.key) }
+                                .filter { col -> id.map { it.toLowerCase() }.contains(col.key.toLowerCase()) }
                                 .also {
                                     if (it.containsValue(null))
                                         throw DbRaccoonDataSetException("""id column can not set null value""")
@@ -71,8 +71,8 @@ private fun Column.createQueryParameter(typeHints: List<TypeHint>, typeByCol: Ty
             .map { entry ->
                 Query.Parameter(
                         value = entry.value,
-                        type = typeHints.firstOrNull { it.name == entry.key }?.type
-                                ?: typeByCol.getOrDefault(entry.key, ColType.DEFAULT)
+                        type = typeHints.firstOrNull { hint -> hint.name.toLowerCase() == entry.key.toLowerCase() }?.type
+                                ?: typeByCol.getOrDefault(entry.key.toLowerCase(), ColType.DEFAULT)
                 )
             }
 }

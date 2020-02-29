@@ -1,10 +1,7 @@
 package com.github.yuizho.dbraccoon.processor
 
 import com.github.yuizho.dbraccoon.ColType
-import com.github.yuizho.dbraccoon.annotation.Col
-import com.github.yuizho.dbraccoon.annotation.DataSet
-import com.github.yuizho.dbraccoon.annotation.Row
-import com.github.yuizho.dbraccoon.annotation.Table
+import com.github.yuizho.dbraccoon.annotation.*
 import com.github.yuizho.dbraccoon.exception.DbRaccoonDataSetException
 import com.github.yuizho.dbraccoon.exception.DbRaccoonException
 import com.github.yuizho.dbraccoon.operation.ColumnMetadataScanner
@@ -91,16 +88,19 @@ class DataSetProcessorTest {
     }
 
     @DataSet([
-        Table("test", [
+        Table(name = "test", rows = [
             Row([
                 Col("id", "1", true),
                 Col("name", "foo", true)
             ])
+        ], types = [
+            TypeHint("id", ColType.SMALLINT),
+            TypeHint("Name", ColType.CHAR)
         ]),
-        Table("test2", [
+        Table("TEST2", [
             Row([
-                Col("id2", "2", true),
-                Col("name2", "bar", true)
+                Col("ID2", "2", true),
+                Col("NAME2", "bar", true)
             ])
         ])
     ])
@@ -111,7 +111,7 @@ class DataSetProcessorTest {
         val dataSet = MultipleTableMultipleId::class.java.getAnnotation(DataSet::class.java)
         val actual = dataSet.createInsertQueryOperator(
                 mapOf(
-                        "test" to mapOf("id" to ColType.DEFAULT, "name" to ColType.DEFAULT),
+                        "test" to mapOf("id" to ColType.INTEGER, "name" to ColType.VARCHAR),
                         "test2" to mapOf("id2" to ColType.INTEGER, "name2" to ColType.VARCHAR)
                 )
         )
@@ -122,12 +122,12 @@ class DataSetProcessorTest {
                         Tuple(
                                 "INSERT INTO test (id, name) VALUES (?, ?)",
                                 listOf(
-                                        Query.Parameter("1", ColType.DEFAULT),
-                                        Query.Parameter("foo", ColType.DEFAULT)
+                                        Query.Parameter("1", ColType.SMALLINT),
+                                        Query.Parameter("foo", ColType.CHAR)
                                 )
                         ),
                         Tuple(
-                                "INSERT INTO test2 (id2, name2) VALUES (?, ?)",
+                                "INSERT INTO TEST2 (ID2, NAME2) VALUES (?, ?)",
                                 listOf(
                                         Query.Parameter("2", ColType.INTEGER),
                                         Query.Parameter("bar", ColType.VARCHAR)
@@ -151,7 +151,7 @@ class DataSetProcessorTest {
                 .containsExactly(
                         // the order is reversed to delete child table before parent table
                         Tuple(
-                                "DELETE FROM test2 WHERE id2 = ? AND name2 = ?",
+                                "DELETE FROM TEST2 WHERE ID2 = ? AND NAME2 = ?",
                                 listOf(
                                         Query.Parameter("2", ColType.INTEGER),
                                         Query.Parameter("bar", ColType.VARCHAR)
@@ -160,8 +160,8 @@ class DataSetProcessorTest {
                         Tuple(
                                 "DELETE FROM test WHERE id = ? AND name = ?",
                                 listOf(
-                                        Query.Parameter("1", ColType.DEFAULT),
-                                        Query.Parameter("foo", ColType.DEFAULT)
+                                        Query.Parameter("1", ColType.SMALLINT),
+                                        Query.Parameter("foo", ColType.CHAR)
                                 )
                         )
 
