@@ -16,7 +16,7 @@ class ColumnMetaDataScanOperatorTest {
         // mocks
         val connMock = mock(Connection::class.java)
         val scannerMock = mock(ColumnMetadataScanner::class.java)
-        `when`(scannerMock.tableName).thenReturn("table_name")
+        `when`(scannerMock.tableName).thenReturn("TABLE_NAME")
         `when`(scannerMock.execute(connMock)).thenReturn(mapOf("id" to ColType.INTEGER))
 
         // when
@@ -33,6 +33,7 @@ class ColumnMetaDataScanOperatorTest {
         // mocks
         val connMock = mock(Connection::class.java)
         val scannerMock = mock(ColumnMetadataScanner::class.java)
+        `when`(scannerMock.tableName).thenReturn("table_name")
         `when`(scannerMock.execute(connMock)).thenAnswer { throw SQLException("some error") }
 
         // when
