@@ -1,15 +1,13 @@
 package com.github.yuizho.dbraccoon;
 
-import com.github.yuizho.dbraccoon.annotation.Col;
-import com.github.yuizho.dbraccoon.annotation.DataSet;
-import com.github.yuizho.dbraccoon.annotation.Row;
-import com.github.yuizho.dbraccoon.annotation.Table;
+import com.github.yuizho.dbraccoon.annotation.*;
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -28,41 +26,44 @@ import static org.assertj.core.api.Assertions.assertThat;
                 })
         })
 })
-public class DbRaccoonExtensionJavaTest {
+public class DbRaccoonExtensionJavaIT {
     private final JdbcDataSource dataSource;
+
     @RegisterExtension
-    DbRaccoonExtension dbRaccoonExtension;
+    final DbRaccoonExtension dbRaccoonExtension;
 
     {
         dataSource = new JdbcDataSource();
         dataSource.setUrl("jdbc:h2:file:./target/db-raccoon");
         dataSource.setUser("sa");
-        dbRaccoonExtension = new DbRaccoonExtension(dataSource);
+        dbRaccoonExtension = new DbRaccoonExtension.Builder(dataSource)
+                .cleanupPhase(CleanupPhase.BEFORE_AND_AFTER_TEST)
+                .setUpQueries(Arrays.asList(
+                        // https://www.h2database.com/html/commands.html#set_referential_integrity
+                        "SET REFERENTIAL_INTEGRITY FALSE",
+                        // https://www.h2database.com/html/commands.html#set_query_timeout
+                        "SET QUERY_TIMEOUT 10000")
+                )
+                .tearDownQueries(Arrays.asList(
+                        // https://www.h2database.com/html/commands.html#set_referential_integrity
+                        "SET REFERENTIAL_INTEGRITY TRUE",
+                        // https://www.h2database.com/html/commands.html#set_query_timeout
+                        "SET QUERY_TIMEOUT 0")
+                )
+                .build();
     }
 
     @Test
-    @DataSet(testData = {
-            @Table(name = "parent", rows = {
-                    @Row(columns = {
-                            @Col(name = "id", value = "1", isId = true),
-                            @Col(name = "name", value = "method-parent")
-                    })
-            }),
-            @Table(name = "child", rows = {
-                    @Row(columns = {
-                            @Col(name = "id", value = "1", isId = true),
-                            @Col(name = "name", value = "method-child"),
-                            @Col(name = "parent_id", value = "1"),
-                    })
-            })
+    @CsvDataSet(testData = {
+            @CsvTable(name = "child", rows = {
+                    "id, name, parent_id",
+                    "1, method-child, 1"
+            }, id = "id")
     })
     public void cleanInsertWorksWhenDataSetIsAppliedToAMethod() throws Exception {
+        // The child table has a foreign key constraint. But the foreign key check is disabled by setUpQueries.
+        // That's why this test works fine.
         try (Statement stmt = dataSource.getConnection().createStatement();) {
-            try (ResultSet rs = stmt.executeQuery("SELECT id, name FROM parent");) {
-                rs.next();
-                assertThat(rs.getInt("id")).isEqualTo(1);
-                assertThat(rs.getString("name")).isEqualTo("method-parent");
-            }
             try (ResultSet rs = stmt.executeQuery("SELECT id, name, parent_id FROM child");) {
                 rs.next();
                 assertThat(rs.getInt("id")).isEqualTo(1);

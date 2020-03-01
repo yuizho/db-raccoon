@@ -19,50 +19,67 @@ And the test data is cleaned up and inserted by 🦝 !
 ### Registering DbRaccoonExtension
 You can register DbRaccoonExtension programmatically by annotating the field in your test classes that are written in JUnit 5.
 
-You have to set several parameters when creating an Instance of DbRaccoonExtension.
+For more information about JUnit 5 Extension Model, please refer to this document.
+https://junit.org/junit5/docs/current/user-guide/#extensions
 
-#### dataSource
-The JDBC data source object to connect to the database that should be inserted test data.
-
-#### cleanupPhase
-The execution phase of the cleanup task (BEFORE_AND_AFTER_TEST is the default).
+#### The parameters to create DbRaccoonExtension instance
+| Parameter | Required / Optional | Default value | Description |
+| ---- | ---- | ---- | ---- |
+| dataSource | Required | - | The JDBC data source object to connect to the database that should be registered test data. For more details about the options, see  [CleanupPhase options](#cleanupphase-optoins) . |
+| cleanupPhase | Optional | `CleanupPhase.BEFORE_AND_AFTER_TEST` | The execution phase of the cleanup task. |
+| setUpQueries | Optional | - | The queries to execute before clean-insert tasks on beforeTestExecution. For example, when you want to temporarily disable a foreign key constraint, you can set the query here. |
+| tearDownQueries | Optional | - | The queries to execute after clean tasks on afterTestExecution. For example, when you want to enable again the foreign key constraint, you can set the query here. |
 
 #### Java
+For Java, We recommend using builder API when you create the object.
 
-```Java
+```java
 @RegisterExtension
- private final DbRaccoonExtension dbRaccoonExtension;
- {
-     JdbcDataSource dataSource = new JdbcDataSource();
-     dataSource.setUrl("jdbc:h2:file:./target/db-raccoon");
-     dataSource.setUser("sa");
-     dbRaccoonExtension = new DbRaccoonExtension(dataSource);
- }
+DbRaccoonExtension dbRaccoonExtension;
+{
+    JdbcDataSource dataSource = new JdbcDataSource();
+    dataSource.setUrl("jdbc:h2:file:./target/db-raccoon");
+    dataSource.setUser("sa");
+    dbRaccoonExtension = new DbRaccoonExtension.Builder(dataSource)
+        .cleanupPhase(CleanupPhase.BEFORE_AND_AFTER_TEST) // clean up the test data on before and after each test
+        .setUpQueries(Arrays.asList("SET REFERENTIAL_INTEGRITY FALSE")) // disable a foreign key constraint in H2 before each test
+        .tearDownQueries(Arrays.asList("SET REFERENTIAL_INTEGRITY TRUE")) // enable a foreign key constraint in H2 after each test
+        .build();
+}
 ```
 
 #### Kotlin
 
 ```kotlin
-kotlincompanion object {
-     @JvmField
-     @RegisterExtension
-     val dbRaccoon = DbRaccoonExtension(
-         dataSource = JdbcDataSource().also {
-             it.setUrl("jdbc:h2:file:./target/db-raccoon")
-             it.user = "sa"
-         },
-        cleanupPhase = CleanupPhase.BEFORE_AND_AFTER_TEST
-     )
- }
+companion object {
+    @JvmField
+    @RegisterExtension
+    val dbRaccoonExtension = DbRaccoonExtension(
+            dataSource = MysqlDataSource().also {
+                it.setUrl("jdbc:mysql://127.0.0.1:13306/testdb")
+                it.user = "test"
+                it.password = "password"
+            },
+            cleanupPhase = CleanupPhase.BEFORE_TEST, // clean up the test data on before each test
+            setUpQueries = listOf("SET FOREIGN_KEY_CHECKS = 0"), // disable a foreign key constraint in MySQL before each test
+            tearDownQueries = listOf("SET FOREIGN_KEY_CHECKS = 1") // disable a foreign key constraint in MySQL before each test
+    )
+}
 ```
 
-For more information about JUnit 5 Extension Model, please refer to this document.
-https://junit.org/junit5/docs/current/user-guide/#extensions
+### CleanupPhase optoins
+You can configure the execution phase of the cleanup task that deletes the test data by CleanupPhase enum.
 
-### Setting up the test data
+| The option name | Description |
+| ---- | ---- |
+| BEFORE_TEST | The cleanup task just executes before each test case. |
+| AFTER_TEST | The cleanup task just executes after each test case. |
+| BEFORE_AND_AFTER_TEST | The cleanup task executes before and after each test case. |
+
+### The annotations to set up the test data
 You can use the following annotations to the test class or method that needs test data before execution.
 
-Each test data is inserted in a defined order. And the inserted test data is cleaned up at the timing that is specified by the [cleanupPhase](#cleanupphase) parameter.
+Each test data is inserted in a defined order. And the inserted test data is cleaned up at the timing that is specified by the [CleanupPhase options](#cleanupphase-optoins) .
 
 When the annotations are applied to both the test class and the test method, the annotation applied to the method will be used
 

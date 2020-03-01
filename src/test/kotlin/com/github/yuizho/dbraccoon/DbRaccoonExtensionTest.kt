@@ -5,6 +5,7 @@ import com.github.yuizho.dbraccoon.annotation.CsvTable
 import com.github.yuizho.dbraccoon.annotation.DataSet
 import com.github.yuizho.dbraccoon.annotation.Table
 import com.github.yuizho.dbraccoon.operation.ColumnMetadataScanOperator
+import com.github.yuizho.dbraccoon.operation.PlainQueryOperator
 import com.github.yuizho.dbraccoon.operation.QueryOperator
 import com.github.yuizho.dbraccoon.processor.createColumnMetadataOperator
 import com.github.yuizho.dbraccoon.processor.createDeleteQueryOperator
@@ -578,7 +579,7 @@ class DbRaccoonExtensionTest {
             verify(exactly = 0) { queryOperatorMock.executeQueries(any()) }
             verify(exactly = 0) { csvDataSetMock.createDeleteQueryOperator(any()) }
             verify(exactly = 0) { csvQueryOperatorMock.executeQueries(any()) }
-            verify(exactly = 0) { storeMock.remove(any()) }
+            verify(exactly = 1) { storeMock.remove("columnMetadataByTable") }
         }
 
         @Test
@@ -611,6 +612,78 @@ class DbRaccoonExtensionTest {
             verify(exactly = 0) { csvQueryOperatorMock.executeQueries(any()) }
 
             verify(exactly = 1) { storeMock.remove("columnMetadataByTable") }
+        }
+    }
+
+    @Nested
+    @DisplayName("The test cases for the options of DbRaccoonExtention constructor")
+    inner class ConstructorOptionCases {
+        @BeforeEach
+        fun setUp() {
+            mockkConstructor(PlainQueryOperator::class)
+        }
+
+        @AfterEach
+        fun tearDown() {
+            unmockkConstructor(PlainQueryOperator::class)
+        }
+
+        @ParameterizedTest(name = "when {0} is passed")
+        @CsvSource(value = ["BEFORE_TEST", "AFTER_TEST", "BEFORE_AND_AFTER_TEST"])
+        fun `beforeTestExecution tear set up queries executes when the setUpQueries option is passed`(cleanupPhase: CleanupPhase) {
+            // mocks
+            val (dataSourceMock) = dataSourceMocks()
+            val contextMock = mockk<ExtensionContext>(relaxUnitFun = true)
+            every { anyConstructed<PlainQueryOperator>().executeQueries(any()) } returns Unit
+
+            // given
+            val dbRaccoonExtension = spyk(
+                    DbRaccoonExtension(
+                            dataSource = dataSourceMock,
+                            cleanupPhase = cleanupPhase,
+                            setUpQueries = listOf("SET FOREIGN_KEY_CHECKS = 0")
+                    )
+            )
+            every { dbRaccoonExtension.getStore(contextMock) } returns mockk<ExtensionContext.Store>(relaxUnitFun = true)
+            every { dbRaccoonExtension.getDataSet(contextMock) } returns null
+            every { dbRaccoonExtension.getCsvDataSet(contextMock) } returns null
+
+            // when
+            dbRaccoonExtension.beforeTestExecution(contextMock)
+
+            // then
+            // set up queries execution is not affected by cleanupPhase option
+            verify(exactly = 1) { anyConstructed<PlainQueryOperator>().executeQueries(any()) }
+        }
+
+        @ParameterizedTest(name = "when {0} is passed")
+        @CsvSource(value = ["BEFORE_TEST", "AFTER_TEST", "BEFORE_AND_AFTER_TEST"])
+        fun `afterTestExecution tear down queries executes when the tearDownQueries option is passed`(cleanupPhase: CleanupPhase) {
+            // mocks
+            val (dataSourceMock) = dataSourceMocks()
+            val contextMock = mockk<ExtensionContext>(relaxUnitFun = true)
+            val storeMock = mockk<ExtensionContext.Store>(relaxUnitFun = true)
+            every { storeMock.remove(any()) } returns mapOf("table" to mapOf("1" to ColType.INTEGER))
+            every { anyConstructed<PlainQueryOperator>().executeQueries(any()) } returns Unit
+
+            // given
+            val dbRaccoonExtension = spyk(
+                    DbRaccoonExtension(
+                            dataSource = dataSourceMock,
+                            cleanupPhase = cleanupPhase,
+                            tearDownQueries = listOf("SET FOREIGN_KEY_CHECKS = 1")
+                    )
+            )
+            every { dbRaccoonExtension.getStore(contextMock) } returns storeMock
+            every { dbRaccoonExtension.getDataSet(contextMock) } returns null
+            every { dbRaccoonExtension.getCsvDataSet(contextMock) } returns null
+
+            // when
+            dbRaccoonExtension.afterTestExecution(contextMock)
+
+            // then
+            // tear down queries execution is not affected by cleanupPhase option
+            verify(exactly = 1) { anyConstructed<PlainQueryOperator>().executeQueries(any()) }
         }
     }
 }
