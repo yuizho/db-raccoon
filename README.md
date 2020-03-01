@@ -163,14 +163,14 @@ public void test() {
 ```kotlin
 @Test
 @CsvDataSet([
-   CsvTable("parent_table", [
-       "id, name",
-       "1, parent_record"
-   ], ["id"]),
-   CsvTable("child_table", [
-       "id, name, parent_id",
-       "1, child_record, 1"
-   ], ["id"])
+    CsvTable(name = "parent_table", rows = [
+        "id, name",
+        "1 , parent_record"
+    ], id = ["id"]),
+    CsvTable(name = "child_table", rows = [
+        "id, name        , parent_id",
+        "1 , child_record, 1"
+    ], id = ["id"])
 ])
 fun `test`() {
   // ...
