@@ -74,31 +74,60 @@ class DbRaccoonExtension @JvmOverloads constructor(
         private val logger: Logger = LoggerFactory.getLogger(DbRaccoonExtension::class.java)
     }
 
+    /**
+     * The builder class to create DbRaccoonExtension instance.
+     *
+     * @since 0.2.0
+     * @property dataSource the jdbc data source to connect the database
+     */
     class Builder(private val dataSource: DataSource) {
-        private var cleanupPhase: CleanupPhase = CleanupPhase.BEFORE_AND_AFTER_TEST
-        private var setUpQueries: List<String> = emptyList()
-        private var tearDownQueries: List<String> = emptyList()
+        private var cleanupPhaseValue: CleanupPhase = CleanupPhase.BEFORE_AND_AFTER_TEST
+        private var setUpQueriesValue: List<String> = emptyList()
+        private var tearDownQueriesValue: List<String> = emptyList()
 
+        /**
+         * The setter class to set CleanupPhase value.
+         *
+         * @param value the execution phase of the cleanup task (Optional. CleanupPhase.BEFORE_AND_AFTER_TEST is default.)
+         * @return this Builder instance
+         */
         fun cleanupPhase(value: CleanupPhase): Builder {
-            cleanupPhase = value
+            cleanupPhaseValue = value
             return this
         }
 
+        /**
+         * The setter class to set setUpQueries value.
+         *
+         * @param value the queries to execute before clean-insert tasks on beforeTestExecution (Optional)
+         * @return this Builder instance
+         */
         fun setUpQueries(value: List<String>): Builder {
-            setUpQueries = value
+            setUpQueriesValue = value
             return this
         }
 
+        /**
+         * The setter class to set tearDownQueries value
+         *
+         * @param value the queries to execute after clean tasks on afterTestExecution (Optional)
+         * @return this Builder instance
+         */
         fun tearDownQueries(value: List<String>): Builder {
-            tearDownQueries = value
+            tearDownQueriesValue = value
             return this
         }
 
+        /**
+         * The build method to create DbRaccoonExtension instance.
+         *
+         * @return DbRaccoonExtension instance
+         */
         fun build(): DbRaccoonExtension = DbRaccoonExtension(
                 dataSource = dataSource,
-                cleanupPhase = cleanupPhase,
-                setUpQueries = setUpQueries,
-                tearDownQueries = tearDownQueries
+                cleanupPhase = cleanupPhaseValue,
+                setUpQueries = setUpQueriesValue,
+                tearDownQueries = tearDownQueriesValue
         )
     }
 
