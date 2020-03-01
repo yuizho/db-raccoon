@@ -25,7 +25,7 @@ https://junit.org/junit5/docs/current/user-guide/#extensions
 #### The parameters to create DbRaccoonExtension instance
 | Parameter | Required / Optional | Default value | Description |
 | ---- | ---- | ---- | ---- |
-| dataSource | Required | - | The JDBC data source object to connect to the database that should be registered test data. For more details about the options, see  [CleanupPhase options](#CleanupPhase-options) . |
+| dataSource | Required | - | The JDBC data source object to connect to the database that should be registered test data. For more details about the options, see  [CleanupPhase options](#cleanupphase-optoins) . |
 | cleanupPhase | Optional | `CleanupPhase.BEFORE_AND_AFTER_TEST` | The execution phase of the cleanup task. |
 | setUpQueries | Optional | - | The queries to execute before clean-insert tasks on beforeTestExecution. For example, when you want to temporarily disable a foreign key constraint, you can set the query here. |
 | tearDownQueries | Optional | - | The queries to execute after clean tasks on afterTestExecution. For example, when you want to enable again the foreign key constraint, you can set the query here. |
@@ -79,7 +79,7 @@ You can configure the execution phase of the cleanup task that deletes the test 
 ### The annotations to set up the test data
 You can use the following annotations to the test class or method that needs test data before execution.
 
-Each test data is inserted in a defined order. And the inserted test data is cleaned up at the timing that is specified by the [CleanupPhase options](#CleanupPhase-options) .
+Each test data is inserted in a defined order. And the inserted test data is cleaned up at the timing that is specified by the [CleanupPhase options](#cleanupphase-optoins) .
 
 When the annotations are applied to both the test class and the test method, the annotation applied to the method will be used
 
