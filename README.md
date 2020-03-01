@@ -74,7 +74,7 @@ You can configure the execution phase of the cleanup task that deletes the test 
 | ---- | ---- |
 | BEFORE_TEST | The cleanup task just executes before each test case. |
 | AFTER_TEST | The cleanup task just executes after each test case. |
-| BEFORE_AND_AFTER_TEST |The cleanup task executes  before and after each test case. |
+| BEFORE_AND_AFTER_TEST | The cleanup task executes before and after each test case. |
 
 ### The annotations to set up the test data
 You can use the following annotations to the test class or method that needs test data before execution.
