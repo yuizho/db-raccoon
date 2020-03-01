@@ -14,7 +14,7 @@ internal class ColumnMetadataScanOperator(val scanners: List<ColumnMetadataScann
         conn.autoCommit = false
         return try {
             scanners.map { scanner ->
-                scanner.tableName to scanner.execute(conn)
+                scanner.tableName.toLowerCase() to scanner.execute(conn)
             }.toMap()
         } catch (ex: Exception) {
             conn.rollback()

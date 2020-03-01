@@ -22,7 +22,9 @@ class QueryTest {
         val query = Query(sql,
                 listOf(
                         Query.Parameter("1", ColType.INTEGER),
-                        Query.Parameter("name", ColType.DEFAULT)
+                        Query.Parameter("name", ColType.DEFAULT),
+                        Query.Parameter(null, ColType.DEFAULT),
+                        Query.Parameter(null, ColType.INTEGER)
                 )
         )
 
@@ -33,6 +35,8 @@ class QueryTest {
         verify(connMock).prepareStatement(sql)
         verify(pstmtMock).setObject(1, 1, ColType.INTEGER.sqlType)
         verify(pstmtMock).setString(2, "name")
+        verify(pstmtMock).setString(3, null)
+        verify(pstmtMock).setObject(4, null, ColType.INTEGER.sqlType)
         verify(pstmtMock).executeUpdate()
     }
 

@@ -2,6 +2,7 @@
 [![Actions Status](https://github.com/yuizho/db-raccoon/workflows/build/badge.svg)](https://github.com/yuizho/db-raccoon/actions)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=yuizho_db-raccoon&metric=alert_status)](https://sonarcloud.io/dashboard?id=yuizho_db-raccoon)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.yuizho/db-raccoon/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.yuizho/db-raccoon)
+[![javadoc](https://javadoc.io/badge2/com.github.yuizho/db-raccoon/javadoc.svg)](https://javadoc.io/doc/com.github.yuizho/db-raccoon)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/yuizho/db-raccoon/blob/master/LICENSE)
 
 A JUnit5 extension to make the test data setup easier.
@@ -59,14 +60,16 @@ For more information about JUnit 5 Extension Model, please refer to this documen
 https://junit.org/junit5/docs/current/user-guide/#extensions
 
 ### Setting up the test data
-You can apply `@DataSet` annotation to the test class or method that needs test data before execution.
+You can use the following annotations to the test class or method that needs test data before execution.
 
 Each test data is inserted in a defined order. And the inserted test data is cleaned up at the timing that is specified by the [cleanupPhase](#cleanupphase) parameter.
 
+When the annotations are applied to both the test class and the test method, the annotation applied to the method will be used
 
-When `@DataSet` is applied to both the test class and the test method, the annotation applied to the method will be used
+#### @DataSet
+`@DataSet` allows you to define the test data by several annotations.
 
-#### Java
+##### Java
 
 ```java
 @Test
@@ -90,21 +93,21 @@ public void test() {
 }
 ```
 
-#### Kotlin
+##### Kotlin
 
 ```kotlin
 @Test
 @DataSet([
-     Table("parent", [
+     Table("parent_table", [
          Row([
              Col("id", "2", true),
-             Col("name", "class-parent")
+             Col("name", "parent_record")
          ])
      ]),
-     Table("child", [
+     Table("child_table", [
          Row([
              Col("id", "2", true),
-             Col("name", "class-child"),
+             Col("name", "child_record"),
              Col("parent_id", "2")
          ])
      ])
@@ -114,9 +117,104 @@ fun `test`() {
 }
 ```
 
-#### Id column
+##### Id column
 At least one Id column (`isId` parameter in `@Col` is true) requires in each `@Row`.
 The Id column is used when the cleanup task is executed.
+
+#### @CsvDataSet (since 0.2.0)
+`@DataSet` allows you to define the test data as comma-separated values.
+
+##### Java
+```java
+@Test
+@CsvDataSet(testData = {
+   @CsvTable(name = "parent_table", rows = {
+       "id, name",
+       "1, parent_record"
+   }, id = "id"),
+   @CsvTable(name = "child_table", rows = {
+       "id, name, parent_id",
+       "1, child_record, 1"
+   }, id = "id")
+})
+public void test() {
+  // ...
+}
+```
+
+##### Kotlin
+```kotlin
+@Test
+@CsvDataSet([
+   CsvTable("parent_table", [
+       "id, name",
+       "1, parent_record"
+   ], ["id"]),
+   CsvTable("child_table", [
+       "id, name, parent_id",
+       "1, child_record, 1"
+   ], ["id"])
+])
+fun `test`() {
+  // ...
+}
+ ```
+
+##### Id column
+At least one id column requires. The Id column is used when the delete task is executed.
+
+##### Null value
+When you define null data, you can use the null value string like this.
+
+```kotlin
+@CsvDataSet([
+   CsvTable("table", [
+       "id, name",
+       "1, [null]" // name is registered as null
+   ], ["id"])
+])
+```
+
+And when you change the null value string, you can define own null value string.
+
+```kotlin
+@CsvDataSet([
+   CsvTable("table", [
+       "id, name",
+       "1, <NULL>" // name is registered as null
+   ], ["id"])
+], "<NULL>")
+```
+
+##### The csv style
+###### Header
+The first row of the comma-separated values is a header row to set the column names.
+
+###### Quote, Escape character
+You can use a single quote (') as the quote character.
+And you can also use backslash (\\) as the escape character. Refer char_column value in the following examples.
+
+```kotlin
+@CsvDataSet([
+   CsvTable(name = "sample_table", rows = [
+       "id, char_column, timestamp_column",
+       "1, 'foo, \'bar\'', '2014-01-10 12:33:49.123'"
+   ], id = ["id"])
+])
+```
+
+##### The example of csv parsing
+| `@CsvTable.rows` Example  | Parsing Result |
+| ---- | ---- |
+| "col1, col2",<br>"foo, bar" | { "col1": "foo", "col2": "bar" } |
+| "col1, col2",<br>"'foo, bar', baz" | { "col1": "foo, bar", "col2": "baz" } |
+| "col1, col2",<br>"\\'foo\\', bar" | { "col1": "'foo'", "col2": "bar" } |
+| "col1, col2",<br>"'foo, \\'bar\\'', baz" | { "col1": "foo, 'bar'", "col2": "baz" } |
+| "col1, col2",<br>"foo, ''" | { "col1": "foo", "col2": "" } |
+| "col1, col2",<br>"foo, " | { "col1": "foo", "col2": "" } |
+| "col1, col2",<br>"foo, [null]" | { "col1": "foo", "col2": null } |
+
+
 
 ### Converting specified values
 String instances defined as column value are converted to the types corresponding to `ColType`.
@@ -124,7 +222,7 @@ String instances defined as column value are converted to the types correspondin
 `ColType` is obtained by Table scannning in default.
 But you can also specify explicitly by `@TypeHint`.
 
-
+#### @DataSet
 ```kotlin
 @DataSet([
      Table("sample_table", [
@@ -137,18 +235,28 @@ But you can also specify explicitly by `@TypeHint`.
  ])
 ```
 
+#### @CsvDataSet (since 0.2.0)
+```kotlin
+@CsvDataSet([
+   CsvTable("sample_table", [
+       "id, binary_column",
+       "1, YWJjZGVmZzE=" // binary_column is inserted as binary type
+   ], ["id"],
+   [TypeHint("binary_column", ColType.BINARY)])
+])
+```
+
 The conversion is executed before building a SQL.
 
 #### Binary data conversion
 When you specify binary data, convert the value into base64 string.
-
 
 ```kotlin
 Col("binary_column", "YWJjZGVmZzE=")
 ```
 
 #### Conversion Table
-The column value (`value` parameter in `@Col`) are converted to the following types corresponding to `ColType`.
+The column value (`value` parameter in the column) are converted to the following types corresponding to `ColType`.
 
 |  ColType  |  Column Value Example  | Result |
 | ---- | ---- | ---- |

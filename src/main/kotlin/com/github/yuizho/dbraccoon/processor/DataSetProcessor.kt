@@ -18,7 +18,7 @@ internal fun DataSet.createColumnMetadataOperator(): ColumnMetadataScanOperator 
 internal fun DataSet.createInsertQueryOperator(columnByTable: Map<String, TypeByColumn>): QueryOperator =
         QueryOperator(testData.flatMap {
             it.createInsertQueries(
-                    columnByTable.get(it.name)
+                    columnByTable[it.name.toLowerCase()]
                             ?: throw DbRaccoonException("the table name [${it.name}] is not stored in columnByTable.")
             )
         })
@@ -26,7 +26,7 @@ internal fun DataSet.createInsertQueryOperator(columnByTable: Map<String, TypeBy
 internal fun DataSet.createDeleteQueryOperator(columnByTable: Map<String, TypeByColumn>): QueryOperator {
     return QueryOperator(testData.flatMap {
         it.createDeleteQueries(
-                columnByTable.get(it.name)
+                columnByTable[it.name.toLowerCase()]
                         ?: throw DbRaccoonException("the table name [${it.name}] is not stored in columnByTable.")
         )
     }.reversed())
@@ -44,7 +44,7 @@ private fun Table.createInsertQueries(typeByCol: TypeByColumn): List<Query> {
                             Query.Parameter(
                                     value = col.value,
                                     type = this.getType(col.name)
-                                            ?: typeByCol.getOrDefault(col.name, ColType.DEFAULT)
+                                            ?: typeByCol.getOrDefault(col.name.toLowerCase(), ColType.DEFAULT)
                             )
                         }
                 )
@@ -61,7 +61,7 @@ private fun Table.createDeleteQueries(typeByCol: TypeByColumn): List<Query> {
                             Query.Parameter(
                                     value = col.value,
                                     type = this.getType(col.name)
-                                            ?: typeByCol.getOrDefault(col.name, ColType.DEFAULT)
+                                            ?: typeByCol.getOrDefault(col.name.toLowerCase(), ColType.DEFAULT)
                             )
                         }
                 )
@@ -69,7 +69,7 @@ private fun Table.createDeleteQueries(typeByCol: TypeByColumn): List<Query> {
 }
 
 private fun Table.getType(name: String): ColType? {
-    return types.firstOrNull { it.name == name }?.type
+    return types.firstOrNull { it.name.toLowerCase() == name.toLowerCase() }?.type
 }
 
 private fun Row.createValuesSyntax(): Pair<String, List<Col>> {

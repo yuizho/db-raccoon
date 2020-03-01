@@ -1,5 +1,6 @@
 package com.github.yuizho.dbraccoon
 
+import com.github.yuizho.dbraccoon.annotation.CsvDataSet
 import com.github.yuizho.dbraccoon.annotation.DataSet
 import com.github.yuizho.dbraccoon.operation.ColumnMetadataByTable
 import com.github.yuizho.dbraccoon.processor.createColumnMetadataOperator
@@ -67,21 +68,38 @@ class DbRaccoonExtension @JvmOverloads constructor(
      * @param context the test context
      */
     override fun beforeTestExecution(context: ExtensionContext) {
-        // When @DataSet is neither applied to Method nor Class, do nothing
-        val dataSet = getDataSet(context) ?: return
-
         logger.info("start test data preparation before test execution")
         val columnMetadataByTable = dataSource.connection.use { conn ->
-            val metas = dataSet.createColumnMetadataOperator().execute(conn)
-            if (cleanupPhase.shouldCleanupBeforeTestExecution) {
-                dataSet.createDeleteQueryOperator(metas).executeQueries(conn)
-            }
-            dataSet.createInsertQueryOperator(metas).executeQueries(conn)
-            metas
+            // When @DataSet is neither applied to Method nor Class, do nothing
+            val dataSetMetas = getDataSet(context)?.let { dataSet ->
+                logger.info("start handling @DataSet test data")
+                val metas = dataSet.createColumnMetadataOperator().execute(conn)
+                if (cleanupPhase.shouldCleanupBeforeTestExecution) {
+                    dataSet.createDeleteQueryOperator(metas).executeQueries(conn)
+                }
+                dataSet.createInsertQueryOperator(metas).executeQueries(conn)
+                metas
+            } ?: emptyMap()
+
+            // When @CsvDataSet is neither applied to Method nor Class, do nothing
+            val csvDataSetMetas = getCsvDataSet(context)?.let { csvDataSet ->
+                logger.info("start handling @CsvDataSet test data")
+                val metas = csvDataSet.createColumnMetadataOperator().execute(conn)
+                if (cleanupPhase.shouldCleanupBeforeTestExecution) {
+                    csvDataSet.createDeleteQueryOperator(metas).executeQueries(conn)
+                }
+                csvDataSet.createInsertQueryOperator(metas).executeQueries(conn)
+                metas
+            } ?: emptyMap()
+
+            // merge meta data maps reutned by each DataSet annotation
+            (dataSetMetas + csvDataSetMetas)
         }
 
         // store column metadata map to pass after test execution phase
-        getStore(context).put(COLUMN_BY_TABLE, columnMetadataByTable)
+        if (columnMetadataByTable.isNotEmpty()) {
+            getStore(context).put(COLUMN_BY_TABLE, columnMetadataByTable)
+        }
     }
 
     /**
@@ -90,22 +108,35 @@ class DbRaccoonExtension @JvmOverloads constructor(
      * @param context the test context
      */
     override fun afterTestExecution(context: ExtensionContext) {
-        // When @DataSet is neither applied to Method nor Class, do nothing
-        val dataSet = getDataSet(context) ?: return
+        logger.info("start test data cleanup after test execution")
         if (!cleanupPhase.shouldCleanupAfterTestExecution) {
             return
         }
+        val metas = getStore(context).remove(COLUMN_BY_TABLE) as? ColumnMetadataByTable ?: return
 
         dataSource.connection.use { conn ->
-            logger.info("start test data cleanup after test execution")
-            val metas = getStore(context).remove(COLUMN_BY_TABLE) as ColumnMetadataByTable
-            dataSet.createDeleteQueryOperator(metas).executeQueries(conn)
+            // When @DataSet is neither applied to Method nor Class, do nothing
+            getDataSet(context)?.also { dataSet ->
+                logger.info("start handling @DataSet test data")
+                dataSet.createDeleteQueryOperator(metas).executeQueries(conn)
+            }
+
+            // When @CsvDataSet is neither applied to Method nor Class, do nothing
+            getCsvDataSet(context)?.also { csvDataSet ->
+                logger.info("start handling @CsvDataSet test data")
+                csvDataSet.createDeleteQueryOperator(metas).executeQueries(conn)
+            }
         }
     }
 
     internal fun getDataSet(context: ExtensionContext): DataSet? {
         val testMethod = context.requiredTestMethod
         return testMethod.getAnnotationFromMethodOrClass(DataSet::class.java)
+    }
+
+    internal fun getCsvDataSet(context: ExtensionContext): CsvDataSet? {
+        val testMethod = context.requiredTestMethod
+        return testMethod.getAnnotationFromMethodOrClass(CsvDataSet::class.java)
     }
 
     internal fun getStore(context: ExtensionContext): ExtensionContext.Store {
