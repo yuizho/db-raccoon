@@ -206,13 +206,13 @@ And you can also use backslash (\\) as the escape character. Refer char_column v
 ##### The example of csv parsing
 | `@CsvTable.rows` Example  | Parsing Result |
 | ---- | ---- |
-| rows = [<br>  "col1, col2",<br>  "foo, bar"<br>] | { "col1": "foo", "col2": "bar" } |
-| rows = [<br>  "col1, col2",<br>  "'foo, bar', baz"<br>] | { "col1": "foo, bar", "col2": "baz" } |
-| rows = [<br>  "col1, col2",<br>  "\\'foo\\', bar"<br>] | { "col1": "'foo'", "col2": "bar" } |
-| rows = [<br>  "col1, col2",<br>  "'foo, \\'bar\\'', baz"<br>] | { "col1": "foo, 'bar'", "col2": "baz" } |
-| rows = [<br>  "col1, col2",<br>  "foo, ''"<br>] | { "col1": "foo", "col2": "" } |
-| rows = [<br>  "col1, col2",<br>  "foo, "<br>] | { "col1": "foo", "col2": "" } |
-| rows = [<br>  "col1, col2",<br>  "foo, [null]"<br>] | { "col1": "foo", "col2": null } |
+| "col1, col2",<br>"foo, bar" | { "col1": "foo", "col2": "bar" } |
+| "col1, col2",<br>"'foo, bar', baz" | { "col1": "foo, bar", "col2": "baz" } |
+| "col1, col2",<br>"\\'foo\\', bar" | { "col1": "'foo'", "col2": "bar" } |
+| "col1, col2",<br>"'foo, \\'bar\\'', baz" | { "col1": "foo, 'bar'", "col2": "baz" } |
+| "col1, col2",<br>"foo, ''" | { "col1": "foo", "col2": "" } |
+| "col1, col2",<br>"foo, " | { "col1": "foo", "col2": "" } |
+| "col1, col2",<br>"foo, [null]" | { "col1": "foo", "col2": null } |
 
 
 
