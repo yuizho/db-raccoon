@@ -160,6 +160,9 @@ fun `test`() {
 }
  ```
 
+##### Id column
+At least one id column requires. The Id column is used when the delete task is executed.
+
 ##### Null value
 When you define null data, you can use the null value string like this.
 
@@ -200,17 +203,17 @@ And you can also use backslash (\) as the escape character. Refer char_column va
 ])
 ```
 
-| Column Value Example  | Result |
+##### The example of csv parsing
+| `@CsvTable.rows` Example  | Parsing Result |
 | ---- | ---- |
-| "foo" | "foo"' |
-| "'foo, bar'" | "foo, bar" |
-| "\\'foo\\'" | "'foo'" |
-| "'foo, \'bar\''" | "foo, 'bar'" |
-| "''" | "" |
-| "" | "" |
+| rows = [<br>  "col1, col2",<br>  "foo, bar"<br>] | { "col1": "foo", "col2": "bar" } |
+| rows = [<br>  "col1, col2",<br>  "'foo, bar', baz"<br>] | { "col1": "foo, bar", "col2": "baz" } |
+| rows = [<br>  "col1, col2",<br>  "\\'foo\\', bar"<br>] | { "col1": "'foo'", "col2": "bar" } |
+| rows = [<br>  "col1, col2",<br>  "'foo, \'bar\'', baz"<br>] | { "col1": "foo, 'bar'", "col2": "baz" } |
+| rows = [<br>  "col1, col2",<br>  "foo, ''"<br>] | { "col1": "foo", "col2": "" } |
+| rows = [<br>  "col1, col2",<br>  "foo, "<br>] | { "col1": "foo", "col2": "" } |
+| rows = [<br>  "col1, col2",<br>  "foo, [null]"<br>] | { "col1": "foo", "col2": null } |
 
-##### Id column
-At least one id column requires. The Id column is used when the delete task is executed.
 
 
 ### Converting specified values

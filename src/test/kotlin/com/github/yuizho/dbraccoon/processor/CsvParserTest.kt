@@ -13,7 +13,7 @@ class CsvParserTest {
             2, 'foo'
             3, 'foo, bar'
             4, 'foo\nbar'
-            5, 'foo\'bar'
+            5, 'foo, \'bar\''
             6,\'foo\'
             7, '"foo bar"'
             8, "foo"
@@ -21,9 +21,10 @@ class CsvParserTest {
             10,foo
             11, あいうえお
             12,
-            13, ''
-            14, [null]
-            15, '[null]'
+            13, 
+            14, ''
+            15, [null]
+            16, '[null]'
         """.trimIndent()
 
         val actual = CsvParser("[null]").parse(csv)
@@ -34,7 +35,7 @@ class CsvParserTest {
                         mapOf("id" to "2", "name" to "foo"),
                         mapOf("id" to "3", "name" to "foo, bar"),
                         mapOf("id" to "4", "name" to "foo\nbar"),
-                        mapOf("id" to "5", "name" to "foo'bar"),
+                        mapOf("id" to "5", "name" to "foo, 'bar'"),
                         mapOf("id" to "6", "name" to "'foo'"),
                         mapOf("id" to "7", "name" to "\"foo bar\""),
                         mapOf("id" to "8", "name" to "\"foo\""),
@@ -43,8 +44,9 @@ class CsvParserTest {
                         mapOf("id" to "11", "name" to "あいうえお"),
                         mapOf("id" to "12", "name" to ""),
                         mapOf("id" to "13", "name" to ""),
-                        mapOf("id" to "14", "name" to null),
-                        mapOf("id" to "15", "name" to null)
+                        mapOf("id" to "14", "name" to ""),
+                        mapOf("id" to "15", "name" to null),
+                        mapOf("id" to "16", "name" to null)
                 )
     }
 
