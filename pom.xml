@@ -6,7 +6,7 @@
 
     <groupId>com.github.yuizho</groupId>
     <artifactId>db-raccoon</artifactId>
-    <version>0.2.0</version>
+    <version>0.3.0-SNAPSHOT</version>
     <name>db-raccoon</name>
     <url>https://github.com/yuizho/db-raccoon</url>
     <description>A JUnit5 extension to make the test data setup easier.</description>
