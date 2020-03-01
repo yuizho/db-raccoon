@@ -52,8 +52,10 @@ private fun CsvTable.createDeleteQueries(typeByCol: TypeByColumn, nullValue: Str
                         params = row
                                 .filter { col -> id.map { it.toLowerCase() }.contains(col.key.toLowerCase()) }
                                 .also {
+                                    if (it.isEmpty())
+                                        throw DbRaccoonDataSetException("The id value is not collect column name. Please confirm the id value in @CsvTable.")
                                     if (it.containsValue(null))
-                                        throw DbRaccoonDataSetException("""id column can not set null value""")
+                                        throw DbRaccoonDataSetException("The id column can not set null value. Please confirm the id column value in @CsvTable.")
                                     it
                                 }
                                 .createQueryParameter(types.toList(), typeByCol)

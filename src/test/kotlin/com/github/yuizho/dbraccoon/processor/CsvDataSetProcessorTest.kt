@@ -214,6 +214,27 @@ class CsvDataSetProcessorTest {
                     mapOf("test" to mapOf("id" to ColType.DEFAULT, "name" to ColType.DEFAULT))
             )
         }.isExactlyInstanceOf(DbRaccoonDataSetException::class.java)
+                .hasMessage("""Please set at least one id [e.g. @CsvTable(id={"id"}, ...)]""")
+    }
+
+    @CsvDataSet([
+        CsvTable("test", [
+            "id, name",
+            "1, foo"
+        ], ["wrong_id"])
+    ])
+    class IdValueIsWrong {}
+
+    @Test
+    fun `CsvDataSet#createDeleteQueryOperator throws exception when the id value is wrong`() {
+        val csvDataSet = IdValueIsWrong::class.java.getAnnotation(CsvDataSet::class.java)
+
+        assertThatThrownBy {
+            csvDataSet.createDeleteQueryOperator(
+                    mapOf("test" to mapOf("id" to ColType.DEFAULT, "name" to ColType.DEFAULT))
+            )
+        }.isExactlyInstanceOf(DbRaccoonDataSetException::class.java)
+                .hasMessage("The id value is not collect column name. Please confirm the id value in @CsvTable.")
     }
 
     @CsvDataSet([
@@ -233,5 +254,7 @@ class CsvDataSetProcessorTest {
                     mapOf("test" to mapOf("id" to ColType.DEFAULT, "name" to ColType.DEFAULT))
             )
         }.isExactlyInstanceOf(DbRaccoonDataSetException::class.java)
+                .hasMessage("The id column can not set null value. Please confirm the id column value in @CsvTable.")
+
     }
 }
