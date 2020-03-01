@@ -35,8 +35,8 @@ import javax.sql.DataSource
  *     dataSource.setUser("sa");
  *     dbRaccoonExtension = new DbRaccoonExtension.Builder(dataSource)
  *         .cleanupPhase(CleanupPhase.BEFORE_AND_AFTER_TEST)
- *         .setUpQueries(Arrays.asList("SET FOREIGN_KEY_CHECKS = 0")
- *         .tearDownQueries(Arrays.asList("SET FOREIGN_KEY_CHECKS = 1"))
+ *         .setUpQueries(Arrays.asList("SET REFERENTIAL_INTEGRITY FALSE"))
+ *         .tearDownQueries(Arrays.asList("SET REFERENTIAL_INTEGRITY TRUE))
  *         .build();
  * }
  * ```
@@ -46,17 +46,20 @@ import javax.sql.DataSource
  * companion object {
  *     @JvmField
  *     @RegisterExtension
- *     val dbRaccoon = DbRaccoonExtension(
- *         dataSource = JdbcDataSource().also {
- *             it.setUrl("jdbc:h2:file:./target/db-raccoon")
- *             it.user = "sa"
- *         }
+ *     val dbRaccoonExtension = DbRaccoonExtension(
+ *             dataSource = JdbcDataSource().also {
+ *                 it.setUrl("jdbc:h2:file:./target/db-raccoon")
+ *                 it.user = "sa"
+ *             },
+ *             cleanupPhase = CleanupPhase.BEFORE_TEST,
+ *             setUpQueries = listOf("SET REFERENTIAL_INTEGRITY FALSE"),
+ *             tearDownQueries = listOf("SET REFERENTIAL_INTEGRITY TRUE")
  *     )
  * }
  * ```
  *
  * @property dataSource the jdbc data source to connect the database
- * @property cleanupPhase the execution phase of the cleanup task (BEFORE_AND_AFTER_TEST is default)
+ * @property cleanupPhase the execution phase of the cleanup task (Optional. CleanupPhase.BEFORE_AND_AFTER_TEST is default.)
  * @property setUpQueries the queries to execute before clean-insert tasks on beforeTestExecution (Optional)
  * @property tearDownQueries the queries to execute after clean tasks on afterTestExecution (Optional)
  */
