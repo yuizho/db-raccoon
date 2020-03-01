@@ -38,39 +38,34 @@ class DbRaccoonExtensionMysqlIT {
         @RegisterExtension
         val sampleExtension = DbRaccoonExtension(
                 dataSource = dataSource,
-                cleanupPhase = CleanupPhase.BEFORE_AND_AFTER_TEST
+                cleanupPhase = CleanupPhase.BEFORE_AND_AFTER_TEST,
+                setUpQueries = listOf("SET FOREIGN_KEY_CHECKS = 0"),
+                tearDownQueries = listOf("SET FOREIGN_KEY_CHECKS = 1")
         )
     }
 
     @Test
-    @DataSet([
-        Table("parent", [
-            Row([
-                Col("id", "1", true),
-                Col("name", "method-parent")
-            ])
-        ]),
-        Table("child", [
-            Row([
-                Col("id", "1", true),
-                Col("name", "method-child"),
-                Col("parent_id", "1")
-            ])
-        ])
+    @CsvDataSet(testData = [
+        CsvTable(name = "child", rows = [
+            "id, name, parent_id",
+            "1, method-child1, 1",
+            "2, method-child2, 2"
+        ], id = ["id"])
     ])
-    fun `clean-insert works when @DataSet is applied to a method`() {
+    fun `clean-insert works when @DataSet is applied to a method and a fereign key check is disabled by setUpQueries`() {
+        // The child table has a foreign key constraint. But the foreign key check is disabled by setUpQueries.
+        // That's why this test works fine.
         dataSource.connection.use { conn ->
             conn.createStatement().use { stmt ->
-                stmt.executeQuery("SELECT id, name FROM parent").use { rs ->
+                stmt.executeQuery("SELECT id, name, parent_id FROM child ORDER BY id").use { rs ->
                     rs.next()
                     assertThat(rs.getInt("id")).isEqualTo(1)
-                    assertThat(rs.getString("name")).isEqualTo("method-parent")
-                }
-                stmt.executeQuery("SELECT id, name, parent_id FROM child").use { rs ->
-                    rs.next()
-                    assertThat(rs.getInt("id")).isEqualTo(1)
-                    assertThat(rs.getString("name")).isEqualTo("method-child")
+                    assertThat(rs.getString("name")).isEqualTo("method-child1")
                     assertThat(rs.getInt("parent_id")).isEqualTo(1)
+                    rs.next()
+                    assertThat(rs.getInt("id")).isEqualTo(2)
+                    assertThat(rs.getString("name")).isEqualTo("method-child2")
+                    assertThat(rs.getInt("parent_id")).isEqualTo(2)
                 }
             }
         }

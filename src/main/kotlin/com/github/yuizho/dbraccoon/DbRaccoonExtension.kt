@@ -3,6 +3,7 @@ package com.github.yuizho.dbraccoon
 import com.github.yuizho.dbraccoon.annotation.CsvDataSet
 import com.github.yuizho.dbraccoon.annotation.DataSet
 import com.github.yuizho.dbraccoon.operation.ColumnMetadataByTable
+import com.github.yuizho.dbraccoon.operation.PlainQueryOperator
 import com.github.yuizho.dbraccoon.processor.createColumnMetadataOperator
 import com.github.yuizho.dbraccoon.processor.createDeleteQueryOperator
 import com.github.yuizho.dbraccoon.processor.createInsertQueryOperator
@@ -27,12 +28,16 @@ import javax.sql.DataSource
  * ### Java
  * ```
  * @RegisterExtension
- * private final DbRaccoonExtension dbRaccoonExtension;
+ * DbRaccoonExtension dbRaccoonExtension;
  * {
  *     JdbcDataSource dataSource = new JdbcDataSource();
  *     dataSource.setUrl("jdbc:h2:file:./target/db-raccoon");
  *     dataSource.setUser("sa");
- *     dbRaccoonExtension = new DbRaccoonExtension(dataSource);
+ *     dbRaccoonExtension = new DbRaccoonExtension.Builder(dataSource)
+ *         .cleanupPhase(CleanupPhase.BEFORE_AND_AFTER_TEST)
+ *         .setUpQueries(Arrays.asList("SET FOREIGN_KEY_CHECKS = 0")
+ *         .tearDownQueries(Arrays.asList("SET FOREIGN_KEY_CHECKS = 1"))
+ *         .build();
  * }
  * ```
  *
@@ -52,14 +57,46 @@ import javax.sql.DataSource
  *
  * @property dataSource the jdbc data source to connect the database
  * @property cleanupPhase the execution phase of the cleanup task (BEFORE_AND_AFTER_TEST is default)
+ * @property setUpQueries the queries to execute before clean-insert tasks on beforeTestExecution (Optional)
+ * @property tearDownQueries the queries to execute after clean tasks on afterTestExecution (Optional)
  */
 class DbRaccoonExtension @JvmOverloads constructor(
         private val dataSource: DataSource,
-        private val cleanupPhase: CleanupPhase = CleanupPhase.BEFORE_AND_AFTER_TEST
+        private val cleanupPhase: CleanupPhase = CleanupPhase.BEFORE_AND_AFTER_TEST,
+        private val setUpQueries: List<String> = emptyList(),
+        private val tearDownQueries: List<String> = emptyList()
 ) : BeforeTestExecutionCallback, AfterTestExecutionCallback {
     companion object {
         private const val COLUMN_BY_TABLE = "columnMetadataByTable"
         private val logger: Logger = LoggerFactory.getLogger(DbRaccoonExtension::class.java)
+    }
+
+    class Builder(private val dataSource: DataSource) {
+        private var cleanupPhase: CleanupPhase = CleanupPhase.BEFORE_AND_AFTER_TEST
+        private var setUpQueries: List<String> = emptyList()
+        private var tearDownQueries: List<String> = emptyList()
+
+        fun cleanupPhase(value: CleanupPhase): Builder {
+            cleanupPhase = value
+            return this
+        }
+
+        fun setUpQueries(value: List<String>): Builder {
+            setUpQueries = value
+            return this
+        }
+
+        fun tearDownQueries(value: List<String>): Builder {
+            tearDownQueries = value
+            return this
+        }
+
+        fun build(): DbRaccoonExtension = DbRaccoonExtension(
+                dataSource = dataSource,
+                cleanupPhase = cleanupPhase,
+                setUpQueries = setUpQueries,
+                tearDownQueries = tearDownQueries
+        )
     }
 
     /**
@@ -70,6 +107,11 @@ class DbRaccoonExtension @JvmOverloads constructor(
     override fun beforeTestExecution(context: ExtensionContext) {
         logger.info("start test data preparation before test execution")
         val columnMetadataByTable = dataSource.connection.use { conn ->
+            if (setUpQueries.isNotEmpty()) {
+                logger.info("start executing set up queries")
+                PlainQueryOperator(setUpQueries).executeQueries(conn)
+            }
+
             // When @DataSet is neither applied to Method nor Class, do nothing
             val dataSetMetas = getDataSet(context)?.let { dataSet ->
                 logger.info("start handling @DataSet test data")
@@ -109,22 +151,26 @@ class DbRaccoonExtension @JvmOverloads constructor(
      */
     override fun afterTestExecution(context: ExtensionContext) {
         logger.info("start test data cleanup after test execution")
-        if (!cleanupPhase.shouldCleanupAfterTestExecution) {
-            return
-        }
         val metas = getStore(context).remove(COLUMN_BY_TABLE) as? ColumnMetadataByTable ?: return
 
         dataSource.connection.use { conn ->
-            // When @DataSet is neither applied to Method nor Class, do nothing
-            getDataSet(context)?.also { dataSet ->
-                logger.info("start handling @DataSet test data")
-                dataSet.createDeleteQueryOperator(metas).executeQueries(conn)
+            if (cleanupPhase.shouldCleanupAfterTestExecution) {
+                // When @DataSet is neither applied to Method nor Class, do nothing
+                getDataSet(context)?.also { dataSet ->
+                    logger.info("start handling @DataSet test data")
+                    dataSet.createDeleteQueryOperator(metas).executeQueries(conn)
+                }
+
+                // When @CsvDataSet is neither applied to Method nor Class, do nothing
+                getCsvDataSet(context)?.also { csvDataSet ->
+                    logger.info("start handling @CsvDataSet test data")
+                    csvDataSet.createDeleteQueryOperator(metas).executeQueries(conn)
+                }
             }
 
-            // When @CsvDataSet is neither applied to Method nor Class, do nothing
-            getCsvDataSet(context)?.also { csvDataSet ->
-                logger.info("start handling @CsvDataSet test data")
-                csvDataSet.createDeleteQueryOperator(metas).executeQueries(conn)
+            if (tearDownQueries.isNotEmpty()) {
+                logger.info("start executing tear down queries")
+                PlainQueryOperator(tearDownQueries).executeQueries(conn)
             }
         }
     }
