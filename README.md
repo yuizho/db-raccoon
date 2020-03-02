@@ -147,11 +147,11 @@ The Id column is used when the cleanup task is executed.
 @CsvDataSet(testData = {
    @CsvTable(name = "parent_table", rows = {
        "id, name",
-       "1, parent_record"
+       "1 , parent_record"
    }, id = "id"),
    @CsvTable(name = "child_table", rows = {
-       "id, name, parent_id",
-       "1, child_record, 1"
+       "id, name            , parent_id",
+       "1 , child_record, 1"
    }, id = "id")
 })
 public void test() {
@@ -185,10 +185,10 @@ When you define null data, you can use the null value string like this.
 
 ```kotlin
 @CsvDataSet([
-   CsvTable("table", [
+   CsvTable(name = "table", rows = [
        "id, name",
-       "1, [null]" // name is registered as null
-   ], ["id"])
+       "1 , [null]" // name is registered as null
+   ], id = ["id"])
 ])
 ```
 
@@ -196,11 +196,11 @@ And when you change the null value string, you can define own null value string.
 
 ```kotlin
 @CsvDataSet([
-   CsvTable("table", [
+   CsvTable(name = "table", rows = [
        "id, name",
-       "1, <NULL>" // name is registered as null
-   ], ["id"])
-], "<NULL>")
+       "1 , <NULL>" // name is registered as null
+   ], id = ["id"])
+], nullValue = "<NULL>")
 ```
 
 ##### The csv style
@@ -215,7 +215,7 @@ And you can also use backslash (\\) as the escape character. Refer char_column v
 @CsvDataSet([
    CsvTable(name = "sample_table", rows = [
        "id, char_column, timestamp_column",
-       "1, 'foo, \'bar\'', '2014-01-10 12:33:49.123'"
+       "1 , 'foo, \'bar\''   , '2014-01-10 12:33:49.123'"
    ], id = ["id"])
 ])
 ```
@@ -247,7 +247,7 @@ But you can also specify explicitly by `@TypeHint`.
              Col("id", "1", true),
              Col("binary_column", "YWJjZGVmZzE=") // this column is inserted as BINARY type
          ])
-         ], [TypeHint("binary_column", ColType.BINARY)]
+         ], types = [TypeHint("binary_column", ColType.BINARY)]
      )
  ])
 ```
@@ -257,9 +257,9 @@ But you can also specify explicitly by `@TypeHint`.
 @CsvDataSet([
    CsvTable("sample_table", [
        "id, binary_column",
-       "1, YWJjZGVmZzE=" // binary_column is inserted as binary type
+       "1 , YWJjZGVmZzE=" // binary_column is inserted as binary type
    ], ["id"],
-   [TypeHint("binary_column", ColType.BINARY)])
+   types = [TypeHint("binary_column", ColType.BINARY)])
 ])
 ```
 
