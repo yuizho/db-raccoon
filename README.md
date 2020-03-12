@@ -14,6 +14,47 @@ And the test data is cleaned up and inserted by 🦝 !
 - cleanup-insert the specified test data before test execution
 - cleanup the specified test data after test execution
 
+### Getting Started
+Adding DbRaccoon to your project.
+
+```xml
+<dependency>
+  <groupId>com.github.yuizho</groupId>
+  <artifactId>db-raccoon</artifactId>
+  <version>0.2.0</version>
+  <scope>test</scope>
+</dependency>
+```
+
+Now, you can define the test data on your test codes like this.
+
+```kotlin
+class SampleTest {
+    companion object {
+        @JvmField
+        @RegisterExtension
+        val dbRaccoonExtension = DbRaccoonExtension(
+                dataSource = JdbcDataSource().also {
+                    it.setUrl("jdbc:h2:file:./target/db-raccoon")
+                    it.user = "sa"
+                }
+        )
+    }
+
+    @Test
+    @CsvDataSet(testData = [
+        CsvTable(name = "player", rows = [
+            "id, first_name, last_name, birthdate , created",
+            "11, Yu        , Darvish  , 1986-08-16, 2020-03-13 00:45:00",
+            "22, Clayton   , Kershaw  , 1988-03-19, 2020-03-13 00:45:00"
+        ], id = ["id"])
+    ])
+    fun `test`() {
+        // some test code...
+    }
+}
+```
+
 ## Usage
 
 ### Registering DbRaccoonExtension
