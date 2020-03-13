@@ -14,9 +14,10 @@ And the test data is cleaned up and inserted by 🦝 !
 - cleanup-insert the specified test data before test execution
 - cleanup the specified test data after test execution
 
-### Getting Started
+## Getting Started
 Adding DbRaccoon to your project.
 
+**Maven**
 ```xml
 <dependency>
   <groupId>com.github.yuizho</groupId>
@@ -24,6 +25,11 @@ Adding DbRaccoon to your project.
   <version>0.2.0</version>
   <scope>test</scope>
 </dependency>
+```
+
+**Gradle**
+```groovy
+testImplementation 'com.github.yuizho:db-raccoon:0.2.0'
 ```
 
 Now, you can define the test data on your test codes like this.
