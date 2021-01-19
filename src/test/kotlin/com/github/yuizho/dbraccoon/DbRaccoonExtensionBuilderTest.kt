@@ -12,6 +12,7 @@ class DbRaccoonExtensionBuilderTest {
         val dataSourceMock = mock(DataSource::class.java)
 
         // when
+        // TODO: add cleanup strategy
         val actual = DbRaccoonExtension.Builder(dataSourceMock)
                 .cleanupPhase(CleanupPhase.BEFORE_TEST)
                 .setUpQueries(listOf("query1", "query2"))

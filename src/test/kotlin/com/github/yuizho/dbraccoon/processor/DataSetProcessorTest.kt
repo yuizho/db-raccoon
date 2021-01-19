@@ -1,5 +1,6 @@
 package com.github.yuizho.dbraccoon.processor
 
+import com.github.yuizho.dbraccoon.CleanupStrategy
 import com.github.yuizho.dbraccoon.ColType
 import com.github.yuizho.dbraccoon.annotation.*
 import com.github.yuizho.dbraccoon.exception.DbRaccoonDataSetException
@@ -60,11 +61,13 @@ class DataSetProcessorTest {
                 .isExactlyInstanceOf(DbRaccoonException::class.java)
     }
 
+    // TODO: add Delete All case
     @Test
     fun `DataSet#createDeleteQueryOperator creates QueryOperator`() {
         val dataSet = SingleTableSingleId::class.java.getAnnotation(DataSet::class.java)
         val actual = dataSet.createDeleteQueryOperator(
-                mapOf("test" to mapOf("id" to ColType.DEFAULT, "name" to ColType.DEFAULT))
+                mapOf("test" to mapOf("id" to ColType.DEFAULT, "name" to ColType.DEFAULT)),
+                CleanupStrategy.USED_ROWS
         )
 
         assertThat(actual.querySources)
@@ -83,7 +86,7 @@ class DataSetProcessorTest {
     fun `DataSet#createDeleteQueryOperator throws exception when wrong table name is passed`() {
         val dataSet = SingleTableSingleId::class.java.getAnnotation(DataSet::class.java)
 
-        assertThatThrownBy { dataSet.createDeleteQueryOperator(mapOf("wrong_table" to mapOf())) }
+        assertThatThrownBy { dataSet.createDeleteQueryOperator(mapOf("wrong_table" to mapOf()), CleanupStrategy.USED_ROWS) }
                 .isExactlyInstanceOf(DbRaccoonException::class.java)
     }
 
@@ -143,7 +146,8 @@ class DataSetProcessorTest {
                 mapOf(
                         "test" to mapOf("id" to ColType.DEFAULT, "name" to ColType.DEFAULT),
                         "test2" to mapOf("id2" to ColType.INTEGER, "name2" to ColType.VARCHAR)
-                )
+                ),
+                CleanupStrategy.USED_ROWS
         )
 
         assertThat(actual.querySources)
@@ -184,7 +188,8 @@ class DataSetProcessorTest {
 
         assertThatThrownBy {
             dataSet.createDeleteQueryOperator(
-                    mapOf("test" to mapOf("id" to ColType.DEFAULT, "name" to ColType.DEFAULT))
+                    mapOf("test" to mapOf("id" to ColType.DEFAULT, "name" to ColType.DEFAULT)),
+                    CleanupStrategy.USED_ROWS
             )
         }.isExactlyInstanceOf(DbRaccoonDataSetException::class.java)
     }

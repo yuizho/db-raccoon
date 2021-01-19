@@ -1,5 +1,6 @@
 package com.github.yuizho.dbraccoon.processor
 
+import com.github.yuizho.dbraccoon.CleanupStrategy
 import com.github.yuizho.dbraccoon.ColType
 import com.github.yuizho.dbraccoon.annotation.Col
 import com.github.yuizho.dbraccoon.annotation.DataSet
@@ -23,12 +24,15 @@ internal fun DataSet.createInsertQueryOperator(columnByTable: Map<String, TypeBy
             )
         })
 
-internal fun DataSet.createDeleteQueryOperator(columnByTable: Map<String, TypeByColumn>): QueryOperator {
+internal fun DataSet.createDeleteQueryOperator(columnByTable: Map<String, TypeByColumn>, cleanupStrategy: CleanupStrategy): QueryOperator {
     return QueryOperator(testData.flatMap {
-        it.createDeleteQueries(
+        when (cleanupStrategy) {
+            CleanupStrategy.USED_ROWS -> it.createDeleteQueries(
                 columnByTable[it.name.toLowerCase()]
                         ?: throw DbRaccoonException("the table name [${it.name}] is not stored in columnByTable.")
-        )
+            )
+            CleanupStrategy.USED_TABLES -> it.createDeleteAllQueries()
+        }
     }.reversed())
 }
 
@@ -49,6 +53,10 @@ private fun Table.createInsertQueries(typeByCol: TypeByColumn): List<Query> {
                         }
                 )
             }
+}
+
+private fun Table.createDeleteAllQueries(): List<Query> {
+    return rows.map { Query(sql = "DELETE FROM $name") }
 }
 
 private fun Table.createDeleteQueries(typeByCol: TypeByColumn): List<Query> {

@@ -60,12 +60,14 @@ import javax.sql.DataSource
  *
  * @property dataSource the jdbc data source to connect the database
  * @property cleanupPhase the execution phase of the cleanup task (Optional. CleanupPhase.BEFORE_AND_AFTER_TEST is default.)
+ * @property cleanupStrategy the strategy of the cleanup task (Optional. CleanupStrategy.USED_ROWS is default.)
  * @property setUpQueries the queries to execute before clean-insert tasks on beforeTestExecution (Optional)
  * @property tearDownQueries the queries to execute after clean tasks on afterTestExecution (Optional)
  */
 class DbRaccoonExtension @JvmOverloads constructor(
         private val dataSource: DataSource,
         private val cleanupPhase: CleanupPhase = CleanupPhase.BEFORE_AND_AFTER_TEST,
+        private val cleanupStrategy: CleanupStrategy = CleanupStrategy.USED_ROWS,
         private val setUpQueries: List<String> = emptyList(),
         private val tearDownQueries: List<String> = emptyList()
 ) : BeforeTestExecutionCallback, AfterTestExecutionCallback {
@@ -149,7 +151,7 @@ class DbRaccoonExtension @JvmOverloads constructor(
                 logger.info("start handling @DataSet test data")
                 val metas = dataSet.createColumnMetadataOperator().execute(conn)
                 if (cleanupPhase.shouldCleanupBeforeTestExecution) {
-                    dataSet.createDeleteQueryOperator(metas).executeQueries(conn)
+                    dataSet.createDeleteQueryOperator(metas, cleanupStrategy).executeQueries(conn)
                 }
                 dataSet.createInsertQueryOperator(metas).executeQueries(conn)
                 metas
@@ -190,7 +192,7 @@ class DbRaccoonExtension @JvmOverloads constructor(
                 // When @DataSet is neither applied to Method nor Class, do nothing
                 getDataSet(context)?.also { dataSet ->
                     logger.info("start handling @DataSet test data")
-                    dataSet.createDeleteQueryOperator(metas).executeQueries(conn)
+                    dataSet.createDeleteQueryOperator(metas, cleanupStrategy).executeQueries(conn)
                 }
 
                 // When @CsvDataSet is neither applied to Method nor Class, do nothing

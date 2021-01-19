@@ -50,7 +50,7 @@ class DbRaccoonExtensionTest {
         val metadataOperatorMock = mockk<ColumnMetadataScanOperator>()
         val queryOperatorMock = mockk<QueryOperator>(relaxUnitFun = true)
         every { dataSetMock.createColumnMetadataOperator() } returns metadataOperatorMock
-        every { dataSetMock.createDeleteQueryOperator(any()) } returns queryOperatorMock
+        every { dataSetMock.createDeleteQueryOperator(any(), any()) } returns queryOperatorMock
         every { dataSetMock.createInsertQueryOperator(any()) } returns queryOperatorMock
         return Triple(dataSetMock, metadataOperatorMock, queryOperatorMock)
     }
@@ -96,7 +96,7 @@ class DbRaccoonExtensionTest {
             dbRaccoonExtension.beforeTestExecution(contextMock)
 
             // then
-            verify(exactly = 1) { dataSetMock.createDeleteQueryOperator(expectedColumnByTable) }
+            verify(exactly = 1) { dataSetMock.createDeleteQueryOperator(expectedColumnByTable, CleanupStrategy.USED_ROWS) }
             verify(exactly = 1) { dataSetMock.createInsertQueryOperator(expectedColumnByTable) }
             verify(exactly = 2) { queryOperatorMock.executeQueries(connMock) }
             verify(exactly = 1) { storeMock.put("columnMetadataByTable", expectedColumnByTable) }
@@ -129,7 +129,7 @@ class DbRaccoonExtensionTest {
             dbRaccoonExtension.beforeTestExecution(contextMock)
 
             // then
-            verify(exactly = 0) { dataSetMock.createDeleteQueryOperator(any()) }
+            verify(exactly = 0) { dataSetMock.createDeleteQueryOperator(any(), any()) }
             verify(exactly = 1) { dataSetMock.createInsertQueryOperator(expectedColumnByTable) }
             verify(exactly = 1) { queryOperatorMock.executeQueries(connMock) }
             verify(exactly = 1) { storeMock.put("columnMetadataByTable", expectedColumnByTable) }
@@ -162,7 +162,7 @@ class DbRaccoonExtensionTest {
             dbRaccoonExtension.afterTestExecution(contextMock)
 
             // then
-            verify(exactly = 1) { dataSetMock.createDeleteQueryOperator(expectedColumnByTable) }
+            verify(exactly = 1) { dataSetMock.createDeleteQueryOperator(expectedColumnByTable, CleanupStrategy.USED_ROWS) }
             verify(exactly = 1) { queryOperatorMock.executeQueries(connMock) }
             verify(exactly = 1) { storeMock.remove("columnMetadataByTable") }
         }
@@ -432,7 +432,7 @@ class DbRaccoonExtensionTest {
             dbRaccoonExtension.beforeTestExecution(contextMock)
 
             // then
-            verify(exactly = 1) { dataSetMock.createDeleteQueryOperator(expectedColumnByTableForDataSet) }
+            verify(exactly = 1) { dataSetMock.createDeleteQueryOperator(expectedColumnByTableForDataSet, CleanupStrategy.USED_ROWS) }
             verify(exactly = 1) { dataSetMock.createInsertQueryOperator(expectedColumnByTableForDataSet) }
             verify(exactly = 2) { queryOperatorMock.executeQueries(connMock) }
             verify(exactly = 1) { csvDataSetMock.createDeleteQueryOperator(expectedColumnByTableForCsvDataSet) }
@@ -474,7 +474,7 @@ class DbRaccoonExtensionTest {
             dbRaccoonExtension.afterTestExecution(contextMock)
 
             // then
-            verify(exactly = 1) { dataSetMock.createDeleteQueryOperator(expectedColumnByTable) }
+            verify(exactly = 1) { dataSetMock.createDeleteQueryOperator(expectedColumnByTable, CleanupStrategy.USED_ROWS) }
             verify(exactly = 1) { queryOperatorMock.executeQueries(connMock) }
             verify(exactly = 1) { csvDataSetMock.createDeleteQueryOperator(expectedColumnByTable) }
             verify(exactly = 1) { csvQueryOperatorMock.executeQueries(connMock) }
@@ -500,8 +500,8 @@ class DbRaccoonExtensionTest {
             dbRaccoonExtension.beforeTestExecution(contextMock)
 
             // then
-            verify(exactly = 0) { dataSetMock.createDeleteQueryOperator(any()) }
-            verify(exactly = 0) { dataSetMock.createDeleteQueryOperator(any()) }
+            verify(exactly = 0) { dataSetMock.createDeleteQueryOperator(any(), any()) }
+            verify(exactly = 0) { dataSetMock.createDeleteQueryOperator(any(), any()) }
             verify(exactly = 0) { dataSetMock.createInsertQueryOperator(any()) }
             verify(exactly = 0) { metadataOperatorMock.execute(any()) }
             verify(exactly = 0) { queryOperatorMock.executeQueries(any()) }
@@ -536,7 +536,7 @@ class DbRaccoonExtensionTest {
             dbRaccoonExtension.afterTestExecution(contextMock)
 
             // then
-            verify(exactly = 0) { dataSetMock.createDeleteQueryOperator(any()) }
+            verify(exactly = 0) { dataSetMock.createDeleteQueryOperator(any(), any()) }
             verify(exactly = 0) { dataSetMock.createInsertQueryOperator(any()) }
             verify(exactly = 0) { queryOperatorMock.executeQueries(any()) }
 
@@ -575,7 +575,7 @@ class DbRaccoonExtensionTest {
             dbRaccoonExtension.afterTestExecution(contextMock)
 
             // then
-            verify(exactly = 0) { dataSetMock.createDeleteQueryOperator(any()) }
+            verify(exactly = 0) { dataSetMock.createDeleteQueryOperator(any(), any()) }
             verify(exactly = 0) { queryOperatorMock.executeQueries(any()) }
             verify(exactly = 0) { csvDataSetMock.createDeleteQueryOperator(any()) }
             verify(exactly = 0) { csvQueryOperatorMock.executeQueries(any()) }
@@ -603,7 +603,7 @@ class DbRaccoonExtensionTest {
             dbRaccoonExtension.afterTestExecution(contextMock)
 
             // then
-            verify(exactly = 0) { dataSetMock.createDeleteQueryOperator(any()) }
+            verify(exactly = 0) { dataSetMock.createDeleteQueryOperator(any(), any()) }
             verify(exactly = 0) { dataSetMock.createInsertQueryOperator(any()) }
             verify(exactly = 0) { queryOperatorMock.executeQueries(any()) }
 
