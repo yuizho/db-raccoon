@@ -61,7 +61,24 @@ class DataSetProcessorTest {
                 .isExactlyInstanceOf(DbRaccoonException::class.java)
     }
 
-    // TODO: add Delete All case
+    @Test
+    fun `DataSet#createDeleteQueryOperator creates Delete ALL QueryOperator`() {
+        val dataSet = SingleTableSingleId::class.java.getAnnotation(DataSet::class.java)
+        val actual = dataSet.createDeleteQueryOperator(
+            mapOf("test" to mapOf("id" to ColType.DEFAULT, "name" to ColType.DEFAULT)),
+            CleanupStrategy.USED_TABLES
+        )
+
+        assertThat(actual.querySources)
+            .extracting("sql", "params")
+            .containsExactly(
+                Tuple(
+                    "DELETE FROM test",
+                    emptyList<Query>()
+                )
+            )
+    }
+
     @Test
     fun `DataSet#createDeleteQueryOperator creates QueryOperator`() {
         val dataSet = SingleTableSingleId::class.java.getAnnotation(DataSet::class.java)
@@ -137,6 +154,33 @@ class DataSetProcessorTest {
                                 )
                         )
                 )
+    }
+
+    @Test
+    fun `DataSet#createDeleteQueryOperator creates Delete ALL QueryOperator which has multiple query`() {
+        val dataSet = MultipleTableMultipleId::class.java.getAnnotation(DataSet::class.java)
+        val actual = dataSet.createDeleteQueryOperator(
+            mapOf(
+                "test" to mapOf("id" to ColType.DEFAULT, "name" to ColType.DEFAULT),
+                "test2" to mapOf("id2" to ColType.INTEGER, "name2" to ColType.VARCHAR)
+            ),
+            CleanupStrategy.USED_TABLES
+        )
+
+        assertThat(actual.querySources)
+            .extracting("sql", "params")
+            .containsExactly(
+                // the order is reversed to delete child table before parent table
+                Tuple(
+                    "DELETE FROM TEST2",
+                    emptyList<Query>()
+                ),
+                Tuple(
+                    "DELETE FROM test",
+                    emptyList<Query>()
+                )
+
+            )
     }
 
     @Test
