@@ -41,10 +41,10 @@ private fun Table.createColumnMetadataScanner(): ColumnMetadataScanner = ColumnM
 private fun Table.createInsertQueries(typeByCol: TypeByColumn): List<Query> {
     return rows
             .map { it.createValuesSyntax() }
-            .map {
+            .map { (placeholderStr, cols) ->
                 Query(
-                        sql = "INSERT INTO $name ${it.first}",
-                        params = it.second.map { col ->
+                        sql = "INSERT INTO $name $placeholderStr",
+                        params = cols.map { col ->
                             Query.Parameter(
                                     value = col.value,
                                     type = this.getType(col.name)
@@ -62,10 +62,10 @@ private fun Table.createDeleteAllQueries(): List<Query> {
 private fun Table.createDeleteQueries(typeByCol: TypeByColumn): List<Query> {
     return rows
             .map { it.createWhereSyntax() }
-            .map {
+            .map { (placeholderStr, idCols) ->
                 Query(
-                        sql = "DELETE FROM $name WHERE ${it.first}",
-                        params = it.second.map { col ->
+                        sql = "DELETE FROM $name WHERE $placeholderStr",
+                        params = idCols.map { col ->
                             Query.Parameter(
                                     value = col.value,
                                     type = this.getType(col.name)
