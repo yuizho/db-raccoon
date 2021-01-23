@@ -84,6 +84,7 @@ class DbRaccoonExtension @JvmOverloads constructor(
      */
     class Builder(private val dataSource: DataSource) {
         private var cleanupPhaseValue: CleanupPhase = CleanupPhase.BEFORE_AND_AFTER_TEST
+        private var cleanupStrategy: CleanupStrategy = CleanupStrategy.USED_ROWS
         private var setUpQueriesValue: List<String> = emptyList()
         private var tearDownQueriesValue: List<String> = emptyList()
 
@@ -95,6 +96,17 @@ class DbRaccoonExtension @JvmOverloads constructor(
          */
         fun cleanupPhase(value: CleanupPhase): Builder {
             cleanupPhaseValue = value
+            return this
+        }
+
+        /**
+         * The setter to set CleanupStrategy value.
+         *
+         * @param value the strategy of the cleanup task (Optional. CleanupStrategy.USED_ROWS is default.)
+         * @return this Builder instance
+         */
+        fun cleanupStrategy(value: CleanupStrategy): Builder {
+            cleanupStrategy = value
             return this
         }
 
@@ -128,6 +140,7 @@ class DbRaccoonExtension @JvmOverloads constructor(
         fun build(): DbRaccoonExtension = DbRaccoonExtension(
                 dataSource = dataSource,
                 cleanupPhase = cleanupPhaseValue,
+                cleanupStrategy = cleanupStrategy,
                 setUpQueries = setUpQueriesValue,
                 tearDownQueries = tearDownQueriesValue
         )
