@@ -175,7 +175,7 @@ class DbRaccoonExtension @JvmOverloads constructor(
                 logger.info("start handling @CsvDataSet test data")
                 val metas = csvDataSet.createColumnMetadataOperator().execute(conn)
                 if (cleanupPhase.shouldCleanupBeforeTestExecution) {
-                    csvDataSet.createDeleteQueryOperator(metas).executeQueries(conn)
+                    csvDataSet.createDeleteQueryOperator(metas, cleanupStrategy).executeQueries(conn)
                 }
                 csvDataSet.createInsertQueryOperator(metas).executeQueries(conn)
                 metas
@@ -211,7 +211,7 @@ class DbRaccoonExtension @JvmOverloads constructor(
                 // When @CsvDataSet is neither applied to Method nor Class, do nothing
                 getCsvDataSet(context)?.also { csvDataSet ->
                     logger.info("start handling @CsvDataSet test data")
-                    csvDataSet.createDeleteQueryOperator(metas).executeQueries(conn)
+                    csvDataSet.createDeleteQueryOperator(metas, cleanupStrategy).executeQueries(conn)
                 }
             }
 
