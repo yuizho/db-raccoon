@@ -1,6 +1,5 @@
 # DbRaccoon 🦝
 [![Actions Status](https://github.com/yuizho/db-raccoon/workflows/build/badge.svg)](https://github.com/yuizho/db-raccoon/actions)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=yuizho_db-raccoon&metric=alert_status)](https://sonarcloud.io/dashboard?id=yuizho_db-raccoon)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.yuizho/db-raccoon/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.yuizho/db-raccoon)
 [![javadoc](https://javadoc.io/badge2/com.github.yuizho/db-raccoon/javadoc.svg)](https://javadoc.io/doc/com.github.yuizho/db-raccoon)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/yuizho/db-raccoon/blob/master/LICENSE)
