@@ -15,14 +15,3 @@ jobs:
         java-version: 1.8
     - name: Build & Test
       run: ./mvnw -B install --file pom.xml
-    - name: Run sonercloud scan
-      run: |
-        if [ "$SONAR_LOGIN" != "" ]; then
-          ./mvnw sonar:sonar -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.login=$SONAR_LOGIN -Dsonar.projectKey=$SONAR_PROJECTKEY -Dsonar.organization=$SONAR_ORGANIZATION
-        fi
-      env:
-        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        SONAR_LOGIN: ${{ secrets.SONAR_LOGIN }}
-        SONAR_PROJECTKEY: ${{ secrets.SONAR_PROJECTKEY }}
-        SONAR_ORGANIZATION: ${{ secrets.SONAR_ORGANIZATION }}
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
