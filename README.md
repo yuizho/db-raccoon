@@ -73,7 +73,7 @@ https://junit.org/junit5/docs/current/user-guide/#extensions
 | ---- | ---- | ---- | ---- |
 | dataSource | Required | - | The JDBC data source object to connect to the database that should be registered test data.  |
 | cleanupPhase | Optional | `CleanupPhase.BEFORE_AND_AFTER_TEST` | The execution phase of the cleanup task. For more details about the options, see  [CleanupPhase options](#cleanupphase-options) .|
-| cleanupStrategy | Optional | `CleanupStrategy.USED_ROWS` | The target data of the cleanup task. For more details about the options, see  [CleanupStrategy options](#cleanupstrategy-options)|
+| cleanupStrategy | Optional | `CleanupStrategy.USED_ROWS` | The target of the cleanup task. For more details about the options, see  [CleanupStrategy options](#cleanupstrategy-options)|
 | setUpQueries | Optional | - | The queries to execute before clean-insert tasks on beforeTestExecution. For example, when you want to temporarily disable a foreign key constraint, you can set the query here. |
 | tearDownQueries | Optional | - | The queries to execute after clean tasks on afterTestExecution. For example, when you want to enable again the foreign key constraint, you can set the query here. |
 
@@ -117,7 +117,7 @@ companion object {
 ```
 
 ### CleanupPhase options
-You can configure the execution phase of the cleanup task that deletes the test data by CleanupPhase enum.
+You can configure the execution phase of the test data cleanup task by CleanupPhase enum.
 
 | The option name | Description |
 | ---- | ---- |
@@ -126,7 +126,7 @@ You can configure the execution phase of the cleanup task that deletes the test 
 | BEFORE_AND_AFTER_TEST | The cleanup task executes before and after each test case. |
 
 ### CleanupStrategy options
-You can configure the cleanup target data of the cleanup task that deletes the test data by CleanupStrategy enum.
+You can configure the cleanup target of the test data cleanup task by CleanupStrategy enum.
 
 | The option name | Description |
 | ---- | ---- |
