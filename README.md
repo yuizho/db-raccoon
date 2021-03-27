@@ -21,14 +21,14 @@ Adding DbRaccoon to your project.
 <dependency>
   <groupId>com.github.yuizho</groupId>
   <artifactId>db-raccoon</artifactId>
-  <version>0.2.0</version>
+  <version>0.3.0</version>
   <scope>test</scope>
 </dependency>
 ```
 
 **Gradle**
 ```groovy
-testImplementation 'com.github.yuizho:db-raccoon:0.2.0'
+testImplementation 'com.github.yuizho:db-raccoon:0.3.0'
 ```
 
 Now, you can define the test data on your test codes like this.
