@@ -71,8 +71,9 @@ https://junit.org/junit5/docs/current/user-guide/#extensions
 #### The parameters to create DbRaccoonExtension instance
 | Parameter | Required / Optional | Default value | Description |
 | ---- | ---- | ---- | ---- |
-| dataSource | Required | - | The JDBC data source object to connect to the database that should be registered test data. For more details about the options, see  [CleanupPhase options](#cleanupphase-optoins) . |
-| cleanupPhase | Optional | `CleanupPhase.BEFORE_AND_AFTER_TEST` | The execution phase of the cleanup task. |
+| dataSource | Required | - | The JDBC data source object to connect to the database that should be registered test data.  |
+| cleanupPhase | Optional | `CleanupPhase.BEFORE_AND_AFTER_TEST` | The execution phase of the cleanup task. For more details about the options, see  [CleanupPhase options](#cleanupphase-options) .|
+| cleanupStrategy | Optional | `CleanupStrategy.USED_ROWS` | The target data of the cleanup task. For more details about the options, see  [CleanupStrategy options](#cleanupstrategy-options)|
 | setUpQueries | Optional | - | The queries to execute before clean-insert tasks on beforeTestExecution. For example, when you want to temporarily disable a foreign key constraint, you can set the query here. |
 | tearDownQueries | Optional | - | The queries to execute after clean tasks on afterTestExecution. For example, when you want to enable again the foreign key constraint, you can set the query here. |
 
@@ -88,6 +89,7 @@ DbRaccoonExtension dbRaccoonExtension;
     dataSource.setUser("sa");
     dbRaccoonExtension = new DbRaccoonExtension.Builder(dataSource)
         .cleanupPhase(CleanupPhase.BEFORE_AND_AFTER_TEST) // clean up the test data on before and after each test
+        .cleanupStrategy(CleanupStrategy.USED_ROWS) // clean up the rows which are defined in @DataSet, @CsvDataSet
         .setUpQueries(Arrays.asList("SET REFERENTIAL_INTEGRITY FALSE")) // disable a foreign key constraint in H2 before each test
         .tearDownQueries(Arrays.asList("SET REFERENTIAL_INTEGRITY TRUE")) // enable a foreign key constraint in H2 after each test
         .build();
@@ -107,13 +109,14 @@ companion object {
                 it.password = "password"
             },
             cleanupPhase = CleanupPhase.BEFORE_TEST, // clean up the test data on before each test
+            cleanupStrategy = CleanupStrategy.USED_ROWS, // clean up the rows which are defined in @DataSet, @CsvDataSet
             setUpQueries = listOf("SET FOREIGN_KEY_CHECKS = 0"), // disable a foreign key constraint in MySQL before each test
             tearDownQueries = listOf("SET FOREIGN_KEY_CHECKS = 1") // disable a foreign key constraint in MySQL before each test
     )
 }
 ```
 
-### CleanupPhase optoins
+### CleanupPhase options
 You can configure the execution phase of the cleanup task that deletes the test data by CleanupPhase enum.
 
 | The option name | Description |
@@ -121,6 +124,14 @@ You can configure the execution phase of the cleanup task that deletes the test 
 | BEFORE_TEST | The cleanup task just executes before each test case. |
 | AFTER_TEST | The cleanup task just executes after each test case. |
 | BEFORE_AND_AFTER_TEST | The cleanup task executes before and after each test case. |
+
+### CleanupStrategy options
+You can configure the cleanup target data of the cleanup task that deletes the test data by CleanupStrategy enum.
+
+| The option name | Description |
+| ---- | ---- |
+| USED_ROWS | Deletes the rows which are defined in @DataSet, @CsvDataSet. |
+| USED_TABLES | Deletes the table which are defined in @DataSet, @CsvDataSet. |
 
 ### The annotations to set up the test data
 You can use the following annotations to the test class or method that needs test data before execution.
