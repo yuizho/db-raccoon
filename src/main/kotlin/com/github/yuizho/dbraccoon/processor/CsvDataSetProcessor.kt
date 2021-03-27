@@ -1,5 +1,6 @@
 package com.github.yuizho.dbraccoon.processor
 
+import com.github.yuizho.dbraccoon.CleanupStrategy
 import com.github.yuizho.dbraccoon.ColType
 import com.github.yuizho.dbraccoon.annotation.CsvDataSet
 import com.github.yuizho.dbraccoon.annotation.CsvTable
@@ -22,13 +23,16 @@ internal fun CsvDataSet.createInsertQueryOperator(columnByTable: Map<String, Typ
             )
         })
 
-internal fun CsvDataSet.createDeleteQueryOperator(columnByTable: Map<String, TypeByColumn>): QueryOperator {
+internal fun CsvDataSet.createDeleteQueryOperator(columnByTable: Map<String, TypeByColumn>, cleanupStrategy: CleanupStrategy): QueryOperator {
     return QueryOperator(testData.flatMap {
-        it.createDeleteQueries(
+        when(cleanupStrategy) {
+            CleanupStrategy.USED_ROWS -> it.createDeleteQueries(
                 columnByTable[it.name.toLowerCase()]
                         ?: throw DbRaccoonException("the table name [${it.name}] is not stored in columnByTable."),
                 nullValue
-        )
+            )
+            CleanupStrategy.USED_TABLES -> it.createDeleteAllQueries()
+        }
     }.reversed())
 }
 
@@ -42,6 +46,10 @@ private fun CsvTable.createInsertQueries(typeByCol: TypeByColumn, nullValue: Str
                         params = row.createQueryParameter(types.toList(), typeByCol)
                 )
             }
+}
+
+private fun CsvTable.createDeleteAllQueries(): List<Query> {
+    return listOf(Query(sql = "DELETE FROM $name"))
 }
 
 private fun CsvTable.createDeleteQueries(typeByCol: TypeByColumn, nullValue: String): List<Query> {

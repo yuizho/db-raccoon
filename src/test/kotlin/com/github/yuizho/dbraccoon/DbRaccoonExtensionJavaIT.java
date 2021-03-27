@@ -38,6 +38,7 @@ public class DbRaccoonExtensionJavaIT {
         dataSource.setUser("sa");
         dbRaccoonExtension = new DbRaccoonExtension.Builder(dataSource)
                 .cleanupPhase(CleanupPhase.BEFORE_AND_AFTER_TEST)
+                .cleanupStrategy(CleanupStrategy.USED_ROWS)
                 .setUpQueries(Arrays.asList(
                         // https://www.h2database.com/html/commands.html#set_referential_integrity
                         "SET REFERENTIAL_INTEGRITY FALSE",

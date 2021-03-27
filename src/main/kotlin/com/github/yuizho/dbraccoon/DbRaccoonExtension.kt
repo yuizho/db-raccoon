@@ -60,12 +60,14 @@ import javax.sql.DataSource
  *
  * @property dataSource the jdbc data source to connect the database
  * @property cleanupPhase the execution phase of the cleanup task (Optional. CleanupPhase.BEFORE_AND_AFTER_TEST is default.)
+ * @property cleanupStrategy the strategy of the cleanup task (Optional. CleanupStrategy.USED_ROWS is default.)
  * @property setUpQueries the queries to execute before clean-insert tasks on beforeTestExecution (Optional)
  * @property tearDownQueries the queries to execute after clean tasks on afterTestExecution (Optional)
  */
 class DbRaccoonExtension @JvmOverloads constructor(
         private val dataSource: DataSource,
         private val cleanupPhase: CleanupPhase = CleanupPhase.BEFORE_AND_AFTER_TEST,
+        private val cleanupStrategy: CleanupStrategy = CleanupStrategy.USED_ROWS,
         private val setUpQueries: List<String> = emptyList(),
         private val tearDownQueries: List<String> = emptyList()
 ) : BeforeTestExecutionCallback, AfterTestExecutionCallback {
@@ -82,6 +84,7 @@ class DbRaccoonExtension @JvmOverloads constructor(
      */
     class Builder(private val dataSource: DataSource) {
         private var cleanupPhaseValue: CleanupPhase = CleanupPhase.BEFORE_AND_AFTER_TEST
+        private var cleanupStrategy: CleanupStrategy = CleanupStrategy.USED_ROWS
         private var setUpQueriesValue: List<String> = emptyList()
         private var tearDownQueriesValue: List<String> = emptyList()
 
@@ -93,6 +96,17 @@ class DbRaccoonExtension @JvmOverloads constructor(
          */
         fun cleanupPhase(value: CleanupPhase): Builder {
             cleanupPhaseValue = value
+            return this
+        }
+
+        /**
+         * The setter to set CleanupStrategy value.
+         *
+         * @param value the strategy of the cleanup task (Optional. CleanupStrategy.USED_ROWS is default.)
+         * @return this Builder instance
+         */
+        fun cleanupStrategy(value: CleanupStrategy): Builder {
+            cleanupStrategy = value
             return this
         }
 
@@ -126,6 +140,7 @@ class DbRaccoonExtension @JvmOverloads constructor(
         fun build(): DbRaccoonExtension = DbRaccoonExtension(
                 dataSource = dataSource,
                 cleanupPhase = cleanupPhaseValue,
+                cleanupStrategy = cleanupStrategy,
                 setUpQueries = setUpQueriesValue,
                 tearDownQueries = tearDownQueriesValue
         )
@@ -149,7 +164,7 @@ class DbRaccoonExtension @JvmOverloads constructor(
                 logger.info("start handling @DataSet test data")
                 val metas = dataSet.createColumnMetadataOperator().execute(conn)
                 if (cleanupPhase.shouldCleanupBeforeTestExecution) {
-                    dataSet.createDeleteQueryOperator(metas).executeQueries(conn)
+                    dataSet.createDeleteQueryOperator(metas, cleanupStrategy).executeQueries(conn)
                 }
                 dataSet.createInsertQueryOperator(metas).executeQueries(conn)
                 metas
@@ -160,7 +175,7 @@ class DbRaccoonExtension @JvmOverloads constructor(
                 logger.info("start handling @CsvDataSet test data")
                 val metas = csvDataSet.createColumnMetadataOperator().execute(conn)
                 if (cleanupPhase.shouldCleanupBeforeTestExecution) {
-                    csvDataSet.createDeleteQueryOperator(metas).executeQueries(conn)
+                    csvDataSet.createDeleteQueryOperator(metas, cleanupStrategy).executeQueries(conn)
                 }
                 csvDataSet.createInsertQueryOperator(metas).executeQueries(conn)
                 metas
@@ -190,13 +205,13 @@ class DbRaccoonExtension @JvmOverloads constructor(
                 // When @DataSet is neither applied to Method nor Class, do nothing
                 getDataSet(context)?.also { dataSet ->
                     logger.info("start handling @DataSet test data")
-                    dataSet.createDeleteQueryOperator(metas).executeQueries(conn)
+                    dataSet.createDeleteQueryOperator(metas, cleanupStrategy).executeQueries(conn)
                 }
 
                 // When @CsvDataSet is neither applied to Method nor Class, do nothing
                 getCsvDataSet(context)?.also { csvDataSet ->
                     logger.info("start handling @CsvDataSet test data")
-                    csvDataSet.createDeleteQueryOperator(metas).executeQueries(conn)
+                    csvDataSet.createDeleteQueryOperator(metas, cleanupStrategy).executeQueries(conn)
                 }
             }
 

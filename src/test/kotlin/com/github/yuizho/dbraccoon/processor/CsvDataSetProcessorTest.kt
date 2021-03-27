@@ -1,5 +1,6 @@
 package com.github.yuizho.dbraccoon.processor
 
+import com.github.yuizho.dbraccoon.CleanupStrategy
 import com.github.yuizho.dbraccoon.ColType
 import com.github.yuizho.dbraccoon.annotation.CsvDataSet
 import com.github.yuizho.dbraccoon.annotation.CsvTable
@@ -78,10 +79,29 @@ class CsvDataSetProcessorTest {
     }
 
     @Test
+    fun `CsvDataSet#createDeleteQueryOperator creates Delete ALL QueryOperator`() {
+        val dataSet = SingleTableSingleId::class.java.getAnnotation(CsvDataSet::class.java)
+        val actual = dataSet.createDeleteQueryOperator(
+            mapOf("test" to mapOf("id" to ColType.DEFAULT, "name" to ColType.DEFAULT)),
+            CleanupStrategy.USED_TABLES
+        )
+
+        assertThat(actual.querySources)
+            .extracting("sql", "params")
+            .containsExactly(
+                Tuple(
+                    "DELETE FROM test",
+                    emptyList<Query>()
+                )
+            )
+    }
+
+    @Test
     fun `CsvDataSet#createDeleteQueryOperator creates QueryOperator`() {
         val dataSet = SingleTableSingleId::class.java.getAnnotation(CsvDataSet::class.java)
         val actual = dataSet.createDeleteQueryOperator(
-                mapOf("test" to mapOf("id" to ColType.DEFAULT, "name" to ColType.DEFAULT))
+                mapOf("test" to mapOf("id" to ColType.DEFAULT, "name" to ColType.DEFAULT)),
+                CleanupStrategy.USED_ROWS
         )
 
         assertThat(actual.querySources)
@@ -112,7 +132,7 @@ class CsvDataSetProcessorTest {
     fun `CsvDataSet#createDeleteQueryOperator throws exception when wrong table name is passed`() {
         val dataSet = SingleTableSingleId::class.java.getAnnotation(CsvDataSet::class.java)
 
-        assertThatThrownBy { dataSet.createDeleteQueryOperator(mapOf("wrong_table" to mapOf())) }
+        assertThatThrownBy { dataSet.createDeleteQueryOperator(mapOf("wrong_table" to mapOf()), CleanupStrategy.USED_ROWS) }
                 .isExactlyInstanceOf(DbRaccoonException::class.java)
     }
 
@@ -166,13 +186,40 @@ class CsvDataSetProcessorTest {
     }
 
     @Test
+    fun `CsvDataSet#createDeleteQueryOperator creates Delete ALL QueryOperator which has multiple query`() {
+        val csvDataSet = MultipleTableMultipleId::class.java.getAnnotation(CsvDataSet::class.java)
+        val actual = csvDataSet.createDeleteQueryOperator(
+            mapOf(
+                "test" to mapOf("id" to ColType.DEFAULT, "name" to ColType.DEFAULT),
+                "test2" to mapOf("id2" to ColType.INTEGER, "name2" to ColType.VARCHAR)
+            ),
+            CleanupStrategy.USED_TABLES
+        )
+
+        assertThat(actual.querySources)
+            .extracting("sql", "params")
+            .containsExactly(
+                // the order is reversed to delete child table before parent table
+                Tuple(
+                    "DELETE FROM TEST2",
+                    emptyList<Query>()
+                ),
+                Tuple(
+                    "DELETE FROM test",
+                    emptyList<Query>()
+                )
+            )
+    }
+
+    @Test
     fun `CsvDataSet#createDeleteQueryOperator creates QueryOperator which has multiple query`() {
         val csvDataSet = MultipleTableMultipleId::class.java.getAnnotation(CsvDataSet::class.java)
         val actual = csvDataSet.createDeleteQueryOperator(
                 mapOf(
                         "test" to mapOf("id" to ColType.DEFAULT, "name" to ColType.DEFAULT),
                         "test2" to mapOf("id2" to ColType.INTEGER, "name2" to ColType.VARCHAR)
-                )
+                ),
+                CleanupStrategy.USED_ROWS
         )
 
         assertThat(actual.querySources)
@@ -211,7 +258,8 @@ class CsvDataSetProcessorTest {
 
         assertThatThrownBy {
             csvDataSet.createDeleteQueryOperator(
-                    mapOf("test" to mapOf("id" to ColType.DEFAULT, "name" to ColType.DEFAULT))
+                    mapOf("test" to mapOf("id" to ColType.DEFAULT, "name" to ColType.DEFAULT)),
+                    CleanupStrategy.USED_ROWS
             )
         }.isExactlyInstanceOf(DbRaccoonDataSetException::class.java)
                 .hasMessage("""Please set at least one id [e.g. @CsvTable(id={"id"}, ...)]""")
@@ -231,7 +279,8 @@ class CsvDataSetProcessorTest {
 
         assertThatThrownBy {
             csvDataSet.createDeleteQueryOperator(
-                    mapOf("test" to mapOf("id" to ColType.DEFAULT, "name" to ColType.DEFAULT))
+                    mapOf("test" to mapOf("id" to ColType.DEFAULT, "name" to ColType.DEFAULT)),
+                    CleanupStrategy.USED_ROWS
             )
         }.isExactlyInstanceOf(DbRaccoonDataSetException::class.java)
                 .hasMessage("The id value is not collect column name. Please confirm the id value in @CsvTable.")
@@ -251,7 +300,8 @@ class CsvDataSetProcessorTest {
 
         assertThatThrownBy {
             csvDataSet.createDeleteQueryOperator(
-                    mapOf("test" to mapOf("id" to ColType.DEFAULT, "name" to ColType.DEFAULT))
+                    mapOf("test" to mapOf("id" to ColType.DEFAULT, "name" to ColType.DEFAULT)),
+                    CleanupStrategy.USED_ROWS
             )
         }.isExactlyInstanceOf(DbRaccoonDataSetException::class.java)
                 .hasMessage("The id column can not set null value. Please confirm the id column value in @CsvTable.")

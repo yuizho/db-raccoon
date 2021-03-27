@@ -9,7 +9,7 @@ import java.sql.Connection
 import java.sql.PreparedStatement
 
 internal data class Query(val sql: String,
-                          val params: List<Parameter>) {
+                          val params: List<Parameter> = emptyList()) {
     companion object {
         val logger: Logger = LoggerFactory.getLogger(Query::class.java)
     }

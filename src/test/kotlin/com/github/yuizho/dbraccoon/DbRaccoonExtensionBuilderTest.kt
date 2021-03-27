@@ -14,17 +14,20 @@ class DbRaccoonExtensionBuilderTest {
         // when
         val actual = DbRaccoonExtension.Builder(dataSourceMock)
                 .cleanupPhase(CleanupPhase.BEFORE_TEST)
+                .cleanupStrategy(CleanupStrategy.USED_TABLES)
                 .setUpQueries(listOf("query1", "query2"))
                 .tearDownQueries(listOf("query3"))
                 .build()
         val actualDataSource = getPirvateFieldValue<DataSource>(actual, "dataSource")
         val actualCleanupPhase = getPirvateFieldValue<CleanupPhase>(actual, "cleanupPhase")
+        val actualCleanupStrategy = getPirvateFieldValue<CleanupStrategy>(actual, "cleanupStrategy")
         val actualSetUpQueries = getPirvateFieldValue<List<String>>(actual, "setUpQueries")
         val actualTearDownQueries = getPirvateFieldValue<List<String>>(actual, "tearDownQueries")
 
         // then
         assertThat(actualDataSource).isEqualTo(dataSourceMock)
         assertThat(actualCleanupPhase).isEqualTo(CleanupPhase.BEFORE_TEST)
+        assertThat(actualCleanupStrategy).isEqualTo(CleanupStrategy.USED_TABLES)
         assertThat(actualSetUpQueries).containsExactly("query1", "query2")
         assertThat(actualTearDownQueries).containsExactly("query3")
     }
