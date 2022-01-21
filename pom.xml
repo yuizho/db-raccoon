@@ -52,7 +52,7 @@
         <assertj.version>3.15.0</assertj.version>
         <mockito.version>3.2.4</mockito.version>
         <mockk.version>1.9.3</mockk.version>
-        <h2.version>1.4.200</h2.version>
+        <h2.version>2.1.210</h2.version>
         <mysql.version>8.0.19</mysql.version>
         <postgres.version>12.2</postgres.version>
         <postgres-jdbc.version>42.2.9</postgres-jdbc.version>
