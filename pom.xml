@@ -55,7 +55,7 @@
         <h2.version>1.4.200</h2.version>
         <mysql.version>8.0.19</mysql.version>
         <postgres.version>12.2</postgres.version>
-        <postgres-jdbc.version>42.2.9</postgres-jdbc.version>
+        <postgres-jdbc.version>42.3.3</postgres-jdbc.version>
         <surefire-plugin.version>2.22.2</surefire-plugin.version>
         <failsafe-plugin.version>2.22.2</failsafe-plugin.version>
         <dokka-plugin.version>0.9.18</dokka-plugin.version>
